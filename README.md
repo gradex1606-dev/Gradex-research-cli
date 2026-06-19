@@ -59,7 +59,8 @@ gradex dashboard
 
 ## Dashboard
 
-Dashboard screenshot: [placeholder](https://example.com/gradex-dashboard-screenshot)
+Dashboard screenshot: <img width="1783" height="882" alt="gradex" src="https://github.com/user-attachments/assets/fa349f5f-8bed-43e8-90af-43f2290ee84b" />
+
 
 ## License
 
