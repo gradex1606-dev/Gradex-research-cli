@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blog — GradeX</title>
+    <meta name="description" content="Updates from GradeX, the autonomous code optimization CLI.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://gradex.dev/blog">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GradeX">
+    <meta property="og:title" content="Blog — GradeX">
+    <meta property="og:description" content="Updates from GradeX, the autonomous code optimization CLI.">
+    <meta property="og:url" content="https://gradex.dev/blog">
+    <meta property="og:image" content="https://gradex.dev/assets/hero-wave.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Blog — GradeX">
+    <meta name="twitter:description" content="Updates from GradeX, the autonomous code optimization CLI.">
+    <meta name="twitter:image" content="https://gradex.dev/assets/hero-wave.png">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="brand" href="index.html" aria-label="GradeX home">
+          <svg class="logo-mark" viewBox="0 0 48 48"><defs><linearGradient id="gx-logo" x1="6" y1="6" x2="42" y2="42"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs><path fill="url(#gx-logo)" d="M9.4 5.8c2.1-2.1 5.5-2.1 7.6 0L24 12.9l7-7.1c2.1-2.1 5.5-2.1 7.6 0s2.1 5.5 0 7.6l-7.1 7L38.6 27c2.1 2.1 2.1 5.5 0 7.6s-5.5 2.1-7.6 0l-7-7-7 7c-2.1 2.1-5.5 2.1-7.6 0s-2.1-5.5 0-7.6l7.1-7.1-7.1-7c-2.1-2.1-2.1-5.5 0-7.6Z"/></svg>
+          <span>GradeX</span>
+        </a>
+        <nav class="nav-links" data-nav-links aria-label="Primary">
+          <a href="index.html#product">Product</a>
+          <a href="docs.html">Docs</a>
+          <a class="active" href="blog.html">Blog</a>
+          <a href="https://github.com/gradex1606-dev/gradex" rel="noopener noreferrer">GitHub</a>
+          <a href="pricing.html">Pricing</a>
+        </nav>
+        <div class="nav-actions" data-nav-actions>
+          <a class="btn btn-primary" href="docs.html#quickstart">Get started</a>
+        </div>
+        <button class="mobile-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Open menu">Menu</button>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="page-hero">
+        <div class="container">
+          <div class="eyebrow">Blog</div>
+          <h1>Notes on measurable code improvement.</h1>
+          <p>Product updates, engineering notes, and practical guides for running AI-driven experiments on real codebases.</p>
+        </div>
+      </section>
+
+      <section class="container blog-grid">
+        <article class="post-card large">
+          <div class="post-date">June 16, 2026</div>
+          <h2>Introducing GradeX v0.1.0</h2>
+          <p>GradeX is an open-source CLI for autonomous code optimization. It runs parallel AI agents in isolated git worktrees, scores every patch against a benchmark, applies correctness gates, and keeps only changes that prove measurable improvement.</p>
+          <h3>Why GradeX exists</h3>
+          <p>Most code changes are evaluated by intuition. A developer believes a refactor is faster, a model believes a patch is cleaner, or a team ships an optimization because it looks plausible. GradeX changes the loop: every candidate patch needs a number, a baseline, and a gate.</p>
+          <h3>What v0.1.0 includes</h3>
+          <ul>
+            <li>CLI commands for install, discover, optimize, dashboard, stats, history, doctor, and upgrade.</li>
+            <li>Git worktree isolation so experiments never touch the main branch.</li>
+            <li>Benchmark and gate runners that score each patch and reject regressions.</li>
+            <li>AI provider support for Groq, Anthropic, OpenAI, and Ollama.</li>
+            <li>A live dashboard with score charts, logs, pass rate, and experiment breakdowns.</li>
+            <li>Production hardening: secret scrubbing, path safety, benchmark caching, rate limiting, and shutdown cleanup.</li>
+          </ul>
+          <h3>How it works</h3>
+          <p>Run <code>gradex discover</code> to identify a target and capture a baseline. Then run <code>gradex optimize</code>. GradeX spawns subagents, gives each a brief, evaluates their patches, and updates the dashboard as experiments complete.</p>
+          <h3>Roadmap</h3>
+          <p>Next we are focusing on better multi-language discovery, hosted team dashboards, richer telemetry, and deeper integrations with coding agents.</p>
+          <a class="btn btn-primary" href="docs.html#quickstart">Try GradeX free &rarr;</a>
+        </article>
+
+        <article class="post-card">
+          <div class="post-date">Coming soon</div>
+          <h3>How to design a benchmark that agents cannot game</h3>
+          <p>A practical guide to deterministic benchmarks, warmups, gate selection, and avoiding false wins.</p>
+          <a href="docs.html">Read the docs &rarr;</a>
+        </article>
+
+        <article class="post-card">
+          <div class="post-date">Coming soon</div>
+          <h3>Why every AI code agent needs an experiment loop</h3>
+          <p>Parallel exploration only matters when each change is measured, gated, and recorded.</p>
+          <a href="index.html#product">See the product &rarr;</a>
+        </article>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div class="footer-brand"><a class="brand" href="index.html"><svg class="logo-mark" viewBox="0 0 48 48"><defs><linearGradient id="gx-foot" x1="6" y1="6" x2="42" y2="42"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs><path fill="url(#gx-foot)" d="M9.4 5.8c2.1-2.1 5.5-2.1 7.6 0L24 12.9l7-7.1c2.1-2.1 5.5-2.1 7.6 0s2.1 5.5 0 7.6l-7.1 7L38.6 27c2.1 2.1 2.1 5.5 0 7.6s-5.5 2.1-7.6 0l-7-7-7 7c-2.1 2.1-5.5 2.1-7.6 0s-2.1-5.5 0-7.6l7.1-7.1-7.1-7c-2.1-2.1-2.1-5.5 0-7.6Z"/></svg><span>GradeX</span></a><p>Autonomous code optimization. Measurable improvement, every run.</p></div>
+        <div class="footer-col"><h4>Product</h4><a href="index.html#product">Overview</a><a href="pricing.html">Pricing</a></div>
+        <div class="footer-col"><h4>Resources</h4><a href="docs.html">Docs</a><a href="blog.html">Blog</a></div>
+        <div class="footer-col"><h4>Social</h4><a href="https://github.com/gradex1606-dev/gradex" rel="noopener noreferrer">GitHub</a><a href="https://x.com/gradex1606" rel="noopener noreferrer">X / Twitter</a></div>
+        <div class="footer-col"><h4>Legal</h4><a href="https://github.com/gradex1606-dev/gradex/blob/main/LICENSE" rel="noopener noreferrer">MIT License</a></div>
+      </div>
+      <div class="container footer-bottom">Copyright 2026 GradeX. Built with Python.</div>
+    </footer>
+    <script src="nav.js"></script>
+  </body>
+</html>

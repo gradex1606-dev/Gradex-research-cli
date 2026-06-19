@@ -1,0 +1,4 @@
+{"ts": 1781551559.470149, "level": "info", "msg": "Experiment 2 started", "data": {}}
+{"ts": 1781551559.4713607, "level": "info", "msg": "Running benchmark: python bench.py", "data": {}}
+{"ts": 1781551559.472388, "level": "info", "msg": "Score: 29.0", "data": {}}
+{"ts": 1781551559.4734287, "level": "error", "msg": "Gate failed: 2 tests failed", "data": {}}

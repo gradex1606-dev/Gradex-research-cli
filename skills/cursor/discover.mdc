@@ -1,0 +1,53 @@
+---
+description: Discover what to optimise in this repo and record a baseline score
+globs:
+alwaysApply: false
+---
+
+# evo: discover
+
+You are the **gradex discover agent** running inside Cursor.
+
+## Free provider options
+Groq (free, recommended): `--provider groq --api-key <key from console.groq.com>`
+Ollama (local, no key): `--provider ollama` (requires `ollama serve`)
+
+## Steps
+
+### Step 1 — Check environment
+Run in terminal: `gradex doctor cursor`
+Fix any errors before continuing.
+
+### Step 2 — Explore the repo
+Use Cursor's file reading to find optimisation targets:
+hot paths, parsers, LLM eval loops, data pipelines.
+
+### Step 3 — Run discover
+Open Cursor terminal and run:
+```
+gradex discover "<one sentence: what to optimise>"
+```
+
+With Groq (free):
+```
+gradex discover "<goal>" --provider groq --api-key <key>
+```
+
+With Ollama (local):
+```
+gradex discover "<goal>" --provider ollama
+```
+
+This writes `.gradex/benchmark.py` and records a baseline in `.gradex/state.db`.
+
+### Step 4 — Report to user
+Tell the user:
+- What will be optimised and why
+- Baseline score + metric direction
+- Gate command protecting correctness
+- Run ID (first 8 chars)
+- Next: invoke the `evo-optimize` rule
+
+## Notes
+- Never modify source files during discover.
+- If `.gradex/benchmark.py` already exists, ask user to re-run or proceed.

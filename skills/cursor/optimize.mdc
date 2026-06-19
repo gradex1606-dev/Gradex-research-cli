@@ -1,0 +1,56 @@
+---
+description: Run the evo optimization loop to improve code performance
+globs:
+alwaysApply: false
+---
+
+# evo: optimize
+
+You are the **gradex optimize agent** running inside Cursor.
+
+## Parameters
+| Parameter | Default | Description                              |
+|-----------|---------|------------------------------------------|
+| subagents | 3       | Parallel experiments per round           |
+| budget    | 5       | Max experiments per subagent             |
+| stall     | 3       | Rounds without improvement before stop   |
+| provider  | groq    | anthropic / openai / groq / ollama       |
+
+## Free provider options
+Groq (recommended free): `--provider groq --api-key <key from console.groq.com>`
+Ollama (local, no account): `--provider ollama` (requires `ollama serve`)
+
+## Steps
+
+### Step 1 — Confirm run exists
+A run must exist from `gradex discover`. If `.gradex/state.db` is missing, run discover first.
+
+### Step 2 — Start optimization
+Open Cursor terminal and run:
+```
+gradex optimize
+```
+
+With params:
+```
+gradex optimize --subagents 3 --budget 10 --stall 3 --provider groq --api-key <key>
+```
+
+### Step 3 — Monitor
+Open a second Cursor terminal:
+```
+gradex dashboard
+```
+Then open http://127.0.0.1:8080 to see live progress.
+
+### Step 4 — Report results
+When complete, tell the user:
+- Rounds / experiments / passed count
+- Baseline vs best score + improvement %
+- Stop reason (stall / budget)
+- If improved: suggest reviewing `.gradex/worktrees/<id>/` before merging
+
+## Safety
+- Main branch is NEVER modified during optimization.
+- Experiments promoted ONLY IF score improved AND all gates passed.
+- Ctrl+C safely stops the loop and cleans up worktrees.

@@ -1,0 +1,2 @@
+{"ts": 1781551559.5186882, "level": "info", "msg": "Experiment 7 started", "data": {}}
+{"ts": 1781551559.5197375, "level": "info", "msg": "Running benchmark: python bench.py", "data": {}}

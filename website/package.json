@@ -1,0 +1,10 @@
+{
+  "name": "gradex-website",
+  "private": true,
+  "version": "1.0.0",
+  "description": "GradeX marketing site (static HTML)",
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "build": "npm run validate"
+  }
+}

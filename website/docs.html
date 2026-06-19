@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Documentation — GradeX</title>
+    <meta name="description" content="Install and use GradeX, the open-source autonomous code optimization CLI.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://gradex.dev/docs">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GradeX">
+    <meta property="og:title" content="Documentation — GradeX">
+    <meta property="og:description" content="Install and use GradeX, the open-source autonomous code optimization CLI.">
+    <meta property="og:url" content="https://gradex.dev/docs">
+    <meta property="og:image" content="https://gradex.dev/assets/hero-wave.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Documentation — GradeX">
+    <meta name="twitter:description" content="Install and use GradeX, the open-source autonomous code optimization CLI.">
+    <meta name="twitter:image" content="https://gradex.dev/assets/hero-wave.png">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="brand" href="index.html" aria-label="GradeX home">
+          <svg class="logo-mark" viewBox="0 0 48 48"><defs><linearGradient id="gx-logo" x1="6" y1="6" x2="42" y2="42"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs><path fill="url(#gx-logo)" d="M9.4 5.8c2.1-2.1 5.5-2.1 7.6 0L24 12.9l7-7.1c2.1-2.1 5.5-2.1 7.6 0s2.1 5.5 0 7.6l-7.1 7L38.6 27c2.1 2.1 2.1 5.5 0 7.6s-5.5 2.1-7.6 0l-7-7-7 7c-2.1 2.1-5.5 2.1-7.6 0s-2.1-5.5 0-7.6l7.1-7.1-7.1-7c-2.1-2.1-2.1-5.5 0-7.6Z"/></svg>
+          <span>GradeX</span>
+        </a>
+        <nav class="nav-links" data-nav-links aria-label="Primary">
+          <a href="index.html#product">Product</a>
+          <a class="active" href="docs.html">Docs</a>
+          <a href="blog.html">Blog</a>
+          <a href="https://github.com/gradex1606-dev/gradex" rel="noopener noreferrer">GitHub</a>
+          <a href="pricing.html">Pricing</a>
+        </nav>
+        <div class="nav-actions" data-nav-actions>
+          <a class="btn btn-primary" href="#quickstart">Get started</a>
+        </div>
+        <button class="mobile-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Open menu">Menu</button>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="page-hero">
+        <div class="container">
+          <div class="eyebrow">Documentation</div>
+          <h1>Install GradeX and run your first optimization loop.</h1>
+          <p>GradeX discovers a measurable target, creates a baseline, runs parallel experiments in isolated git worktrees, and keeps only patches that improve your metric and pass your gates.</p>
+        </div>
+      </section>
+
+      <div class="container docs-layout">
+        <aside class="docs-sidebar">
+          <a href="#quickstart">Quickstart</a>
+          <a href="#cli">CLI reference</a>
+          <a href="#providers">Providers</a>
+          <a href="#dashboard">Dashboard</a>
+          <a href="#analytics">Analytics</a>
+          <a href="#hosts">Host plugins</a>
+        </aside>
+
+        <article class="docs-content">
+          <section id="quickstart" class="docs-section">
+            <h2>Quickstart</h2>
+            <p>Run these commands in any Python project with git initialized.</p>
+            <div class="code-block">pip install gradex
+gradex install cursor
+gradex discover "make the parser faster" --provider groq --api-key &lt;key&gt;
+gradex optimize --provider groq --api-key &lt;key&gt;
+gradex dashboard<button class="copy-btn" type="button" data-copy='pip install gradex
+gradex install cursor
+gradex discover "make the parser faster" --provider groq --api-key <key>
+gradex optimize --provider groq --api-key <key>
+gradex dashboard' aria-label="Copy command to clipboard">Copy</button></div>
+          </section>
+
+          <section id="cli" class="docs-section">
+            <h2>CLI reference</h2>
+            <div class="table-wrap">
+            <table class="command-table">
+              <thead><tr><th scope="col">Command</th><th scope="col">Description</th><th scope="col">Common flags</th></tr></thead>
+              <tbody>
+                <tr><td><code>gradex install</code></td><td>Install GradeX rules or skills into a coding host.</td><td><code>cursor</code>, <code>claude-code</code></td></tr>
+                <tr><td><code>gradex doctor</code></td><td>Check whether your environment is ready.</td><td><code>cursor</code>, <code>claude-code</code></td></tr>
+                <tr><td><code>gradex dashboard</code></td><td>Start the live dashboard on localhost.</td><td><code>--port</code>, <code>--no-browser</code></td></tr>
+                <tr><td><code>gradex upgrade</code></td><td>Check PyPI for a newer GradeX release.</td><td>none</td></tr>
+                <tr><td><code>gradex discover</code></td><td>Analyze the repo and capture a baseline score.</td><td><code>--provider</code>, <code>--model</code>, <code>--api-key</code></td></tr>
+                <tr><td><code>gradex optimize</code></td><td>Run the parallel optimization loop.</td><td><code>--subagents</code>, <code>--budget</code>, <code>--stall</code></td></tr>
+                <tr><td><code>gradex stats</code></td><td>Show analytics for a run and export JSON or CSV.</td><td><code>--json</code>, <code>--csv</code>, <code>--run-id</code></td></tr>
+                <tr><td><code>gradex history</code></td><td>List recent optimization runs.</td><td><code>--limit</code></td></tr>
+              </tbody>
+            </table>
+            </div>
+          </section>
+
+          <section id="providers" class="docs-section">
+            <h2>Provider setup</h2>
+            <p>Use CLI flags for a quick start or store defaults in <code>~/.gradex/config.toml</code>.</p>
+            <div class="code-block">[llm]
+provider = "groq"
+model = "llama-3.3-70b-versatile"
+api_key = "gsk_..."
+
+# Other providers: anthropic, openai, ollama<button class="copy-btn" type="button" data-copy='[llm]
+provider = "groq"
+model = "llama-3.3-70b-versatile"
+api_key = "gsk_..."' aria-label="Copy command to clipboard">Copy</button></div>
+            <div class="card-grid">
+              <article class="card featured"><h3>Groq</h3><p>Recommended free cloud provider. Fast inference and no local setup.</p></article>
+              <article class="card"><h3>Ollama</h3><p>Fully local. Run <code>ollama serve</code> and pull a model before starting.</p></article>
+              <article class="card"><h3>Anthropic</h3><p>Use Claude models when you need deeper code reasoning.</p></article>
+              <article class="card"><h3>OpenAI</h3><p>Use GPT models through the OpenAI-compatible path.</p></article>
+            </div>
+          </section>
+
+          <section id="dashboard" class="docs-section">
+            <h2>Dashboard</h2>
+            <p>The dashboard gives you trust while the optimizer runs: latest run, experiments, pass rate, score chart, and trace logs.</p>
+            <div class="code-block">gradex dashboard
+# Open http://127.0.0.1:8080<button class="copy-btn" type="button" data-copy="gradex dashboard" aria-label="Copy command to clipboard">Copy</button></div>
+            <ul>
+              <li>Experiment table shows status, score, delta from baseline, and gate result.</li>
+              <li>Score chart plots only passed experiments.</li>
+              <li>Analytics cards show pass rate, improvement, best score, and duration.</li>
+            </ul>
+          </section>
+
+          <section id="analytics" class="docs-section">
+            <h2>Analytics</h2>
+            <p>Use stats and history to inspect run quality, export data, and prove that changes improved real metrics.</p>
+            <div class="code-block">gradex stats
+gradex stats --json run.json --csv run.csv
+gradex history --limit 20<button class="copy-btn" type="button" data-copy="gradex stats
+gradex stats --json run.json --csv run.csv
+gradex history --limit 20" aria-label="Copy command to clipboard">Copy</button></div>
+          </section>
+
+          <section id="hosts" class="docs-section">
+            <h2>Host plugins</h2>
+            <p>GradeX works directly from the CLI, but it can also install guidance into coding hosts.</p>
+            <div class="table-wrap">
+            <table class="command-table">
+              <thead><tr><th scope="col">Host</th><th scope="col">Install command</th><th scope="col">What it adds</th></tr></thead>
+              <tbody>
+                <tr><td>Cursor</td><td><code>gradex install cursor</code></td><td>Project rules in <code>.cursor/rules/</code>.</td></tr>
+                <tr><td>Claude Code</td><td><code>gradex install claude-code</code></td><td>Discover and optimize skill files.</td></tr>
+              </tbody>
+            </table>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div class="footer-brand"><a class="brand" href="index.html"><svg class="logo-mark" viewBox="0 0 48 48"><defs><linearGradient id="gx-foot" x1="6" y1="6" x2="42" y2="42"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs><path fill="url(#gx-foot)" d="M9.4 5.8c2.1-2.1 5.5-2.1 7.6 0L24 12.9l7-7.1c2.1-2.1 5.5-2.1 7.6 0s2.1 5.5 0 7.6l-7.1 7L38.6 27c2.1 2.1 2.1 5.5 0 7.6s-5.5 2.1-7.6 0l-7-7-7 7c-2.1 2.1-5.5 2.1-7.6 0s-2.1-5.5 0-7.6l7.1-7.1-7.1-7c-2.1-2.1-2.1-5.5 0-7.6Z"/></svg><span>GradeX</span></a><p>Autonomous code optimization. Measurable improvement, every run.</p></div>
+        <div class="footer-col"><h4>Product</h4><a href="index.html#product">Overview</a><a href="pricing.html">Pricing</a></div>
+        <div class="footer-col"><h4>Resources</h4><a href="docs.html">Docs</a><a href="blog.html">Blog</a></div>
+        <div class="footer-col"><h4>Social</h4><a href="https://github.com/gradex1606-dev/gradex" rel="noopener noreferrer">GitHub</a><a href="https://x.com/gradex1606" rel="noopener noreferrer">X / Twitter</a></div>
+        <div class="footer-col"><h4>Legal</h4><a href="https://github.com/gradex1606-dev/gradex/blob/main/LICENSE" rel="noopener noreferrer">MIT License</a></div>
+      </div>
+      <div class="container footer-bottom">Copyright 2026 GradeX. Built with Python.</div>
+    </footer>
+    <script src="nav.js"></script>
+  </body>
+</html>

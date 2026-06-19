@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pricing — GradeX</title>
+    <meta name="description" content="GradeX pricing: open source today, hosted cloud coming soon.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://gradex.dev/pricing">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GradeX">
+    <meta property="og:title" content="Pricing — GradeX">
+    <meta property="og:description" content="GradeX pricing: open source today, hosted cloud coming soon.">
+    <meta property="og:url" content="https://gradex.dev/pricing">
+    <meta property="og:image" content="https://gradex.dev/assets/hero-wave.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pricing — GradeX">
+    <meta name="twitter:description" content="GradeX pricing: open source today, hosted cloud coming soon.">
+    <meta name="twitter:image" content="https://gradex.dev/assets/hero-wave.png">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="brand" href="index.html" aria-label="GradeX home">
+          <svg class="logo-mark" viewBox="0 0 48 48"><defs><linearGradient id="gx-logo" x1="6" y1="6" x2="42" y2="42"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs><path fill="url(#gx-logo)" d="M9.4 5.8c2.1-2.1 5.5-2.1 7.6 0L24 12.9l7-7.1c2.1-2.1 5.5-2.1 7.6 0s2.1 5.5 0 7.6l-7.1 7L38.6 27c2.1 2.1 2.1 5.5 0 7.6s-5.5 2.1-7.6 0l-7-7-7 7c-2.1 2.1-5.5 2.1-7.6 0s-2.1-5.5 0-7.6l7.1-7.1-7.1-7c-2.1-2.1-2.1-5.5 0-7.6Z"/></svg>
+          <span>GradeX</span>
+        </a>
+        <nav class="nav-links" data-nav-links aria-label="Primary">
+          <a href="index.html#product">Product</a>
+          <a href="docs.html">Docs</a>
+          <a href="blog.html">Blog</a>
+          <a href="https://github.com/gradex1606-dev/gradex" rel="noopener noreferrer">GitHub</a>
+          <a class="active" href="pricing.html">Pricing</a>
+        </nav>
+        <div class="nav-actions" data-nav-actions>
+          <a class="btn btn-primary" href="docs.html#quickstart">Get started</a>
+        </div>
+        <button class="mobile-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Open menu">Menu</button>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="page-hero">
+        <div class="container">
+          <div class="eyebrow">Pricing</div>
+          <h1>Start free. Upgrade when your team needs shared infrastructure.</h1>
+          <p>GradeX is open source and runs locally today. Hosted dashboards and team orchestration are planned for GradeX Cloud.</p>
+        </div>
+      </section>
+
+      <section class="container pricing-grid">
+        <article class="price-card featured">
+          <div class="eyebrow">Available now</div>
+          <h2>Open Source</h2>
+          <div class="price">$0 <small>forever</small></div>
+          <p>Everything you need to run autonomous optimization locally on your own repos.</p>
+          <ul class="check-list">
+            <li>Install from PyPI with <code>pip install gradex</code></li>
+            <li>Local git worktree experiments</li>
+            <li>Live dashboard on localhost</li>
+            <li>Groq, Anthropic, OpenAI, and Ollama providers</li>
+            <li>Stats, history, JSON export, and CSV export</li>
+            <li>Secret scrubber, path safety, cache, and graceful shutdown</li>
+            <li>Cursor and Claude Code integrations</li>
+          </ul>
+          <a class="btn btn-primary" href="docs.html#quickstart">Start free today &rarr;</a>
+        </article>
+
+        <article class="price-card">
+          <div class="eyebrow">Coming soon</div>
+          <h2>GradeX Cloud</h2>
+          <div class="price">Custom <small>team pricing</small></div>
+          <p>Hosted observability, shared runs, and managed infrastructure for teams that want GradeX at scale.</p>
+          <ul class="check-list">
+            <li>Hosted experiment dashboards</li>
+            <li>Team run history and telemetry</li>
+            <li>Managed sandbox workers</li>
+            <li>Shared provider and budget controls</li>
+            <li>Audit trail for every patch and gate</li>
+            <li>Priority support and onboarding</li>
+          </ul>
+          <a class="btn btn-secondary" href="https://github.com/gradex1606-dev/gradex" rel="noopener noreferrer">Join waitlist on GitHub</a>
+        </article>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-header">
+            <div class="section-kicker">Provider costs</div>
+            <h2>Your model choice controls your run cost.</h2>
+            <p>GradeX does not force a provider. Start free with Groq or local with Ollama, then bring premium APIs when you need them.</p>
+          </div>
+          <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th scope="col">Provider</th><th scope="col">Best for</th><th scope="col">Approx cost</th><th scope="col">Setup</th></tr></thead>
+            <tbody>
+              <tr><td>Groq</td><td>Fast free cloud runs</td><td>$0 on free tier</td><td><code>--provider groq --api-key &lt;key&gt;</code></td></tr>
+              <tr><td>Ollama</td><td>Fully local private runs</td><td>$0</td><td><code>--provider ollama</code></td></tr>
+              <tr><td>Anthropic</td><td>Deep code reasoning</td><td>Usage-based</td><td><code>--provider anthropic</code></td></tr>
+              <tr><td>OpenAI</td><td>General code edits</td><td>Usage-based</td><td><code>--provider openai</code></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container cta-band">
+          <div>
+            <h3>Start with open source GradeX.</h3>
+            <p>No credit card. No waitlist. Install from PyPI and run your first baseline today.</p>
+          </div>
+          <a class="btn btn-primary" href="docs.html#quickstart">Start free today &rarr;</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div class="footer-brand"><a class="brand" href="index.html"><svg class="logo-mark" viewBox="0 0 48 48"><defs><linearGradient id="gx-foot" x1="6" y1="6" x2="42" y2="42"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs><path fill="url(#gx-foot)" d="M9.4 5.8c2.1-2.1 5.5-2.1 7.6 0L24 12.9l7-7.1c2.1-2.1 5.5-2.1 7.6 0s2.1 5.5 0 7.6l-7.1 7L38.6 27c2.1 2.1 2.1 5.5 0 7.6s-5.5 2.1-7.6 0l-7-7-7 7c-2.1 2.1-5.5 2.1-7.6 0s-2.1-5.5 0-7.6l7.1-7.1-7.1-7c-2.1-2.1-2.1-5.5 0-7.6Z"/></svg><span>GradeX</span></a><p>Autonomous code optimization. Measurable improvement, every run.</p></div>
+        <div class="footer-col"><h4>Product</h4><a href="index.html#product">Overview</a><a href="pricing.html">Pricing</a></div>
+        <div class="footer-col"><h4>Resources</h4><a href="docs.html">Docs</a><a href="blog.html">Blog</a></div>
+        <div class="footer-col"><h4>Social</h4><a href="https://github.com/gradex1606-dev/gradex" rel="noopener noreferrer">GitHub</a><a href="https://x.com/gradex1606" rel="noopener noreferrer">X / Twitter</a></div>
+        <div class="footer-col"><h4>Legal</h4><a href="https://github.com/gradex1606-dev/gradex/blob/main/LICENSE" rel="noopener noreferrer">MIT License</a></div>
+      </div>
+      <div class="container footer-bottom">Copyright 2026 GradeX. Built with Python.</div>
+    </footer>
+    <script src="nav.js"></script>
+  </body>
+</html>
