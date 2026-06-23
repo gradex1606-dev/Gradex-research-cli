@@ -1102,6 +1102,53 @@ code {
   font-weight: 650;
 }
 
+.price-free,
+.price-custom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.price-free .price-amount,
+.price-custom .price-amount {
+  font-size: inherit;
+  line-height: 1;
+}
+
+.price-free .price-term,
+.price-custom .price-term {
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.price-token-note {
+  margin: 4px 0 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(99, 102, 241, 0.16);
+  border-radius: 14px;
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.price-token-note h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary-dark);
+}
+
+.price-token-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
 .check-list {
   display: grid;
   gap: 12px;
@@ -1384,6 +1431,30 @@ code {
 
 .future-compare-section {
   padding-top: 64px;
+}
+
+.blog-compare-section .blog-compare-heading {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  margin: 0 0 14px;
+  font-size: clamp(32px, 4vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.055em;
+}
+
+.blog-compare-heading .blog-compare-line {
+  white-space: nowrap;
+}
+
+.blog-compare-heading .blog-compare-vs {
+  color: var(--muted);
+  font-size: 0.55em;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
 }
 
 .blog-compare-section {
@@ -1978,5 +2049,17 @@ body.waitlist-open {
   .future-community-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .blog-compare-heading {
+    flex-direction: column;
+    gap: 0.12em;
+    line-height: 1.1;
+  }
+
+  .blog-compare-heading .blog-compare-vs {
+    font-size: 0.42em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 }

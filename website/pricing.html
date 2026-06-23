@@ -59,7 +59,10 @@
         <article class="price-card featured">
           <div class="eyebrow">Available now</div>
           <h2>Open Source</h2>
-          <div class="price">$0 <small>forever</small></div>
+          <div class="price price-free">
+            <span class="price-amount">$0</span>
+            <span class="price-term">Forever free</span>
+          </div>
           <p>Everything you need to run autonomous optimization locally on your own repos.</p>
           <ul class="check-list">
             <li>Install from PyPI with <code>pip install gradex</code></li>
@@ -76,7 +79,14 @@
         <article class="price-card">
           <div class="eyebrow">Coming soon</div>
           <h2>GradeX Cloud</h2>
-          <div class="price">Custom <small>team pricing</small></div>
+          <div class="price-token-note">
+            <h4>Planned Token Utility</h4>
+            <p>Access to GradeX Cloud will eventually require GradeX tokens. Token requirements and allocation models are still being finalized and will be announced closer to launch.</p>
+          </div>
+          <div class="price price-custom">
+            <span class="price-amount">Custom</span>
+            <span class="price-term">Team pricing</span>
+          </div>
           <p>Hosted observability, shared runs, and managed infrastructure for teams that want GradeX at scale.</p>
           <ul class="check-list">
             <li>Hosted experiment dashboards</li>
@@ -86,7 +96,7 @@
             <li>Audit trail for every patch and gate</li>
             <li>Priority support and onboarding</li>
           </ul>
-          <a class="btn btn-secondary" href="https://github.com/gradex1606-dev/Gradex-research-cli" target="_blank" rel="noopener noreferrer">Join waitlist on GitHub</a>
+          <button class="btn btn-secondary" type="button" data-waitlist-open>Join Early Access</button>
         </article>
       </section>
 
@@ -132,6 +142,30 @@
       </div>
       <div class="container footer-bottom">Copyright 2026 GradeX. Built with Python.</div>
     </footer>
+    <div id="waitlist-modal" class="waitlist-modal" hidden aria-hidden="true">
+      <div class="waitlist-dialog" role="dialog" aria-modal="true" aria-labelledby="waitlist-title">
+        <button class="waitlist-close" type="button" data-waitlist-close aria-label="Close">&times;</button>
+        <div data-waitlist-form-view>
+          <h2 id="waitlist-title">Join Early Access</h2>
+          <p class="waitlist-lead">Get updates as GradeX ships new experiment and verification features.</p>
+          <form id="waitlist-form" novalidate>
+            <label class="waitlist-label" for="waitlist-email">Email Address</label>
+            <input id="waitlist-email" class="waitlist-input" type="email" name="email" autocomplete="email" placeholder="you@company.com" required>
+            <p class="waitlist-error" data-waitlist-error hidden></p>
+            <button id="waitlist-submit" class="btn btn-primary waitlist-submit" type="submit" disabled>Join Waitlist</button>
+          </form>
+        </div>
+        <div class="waitlist-success" data-waitlist-success-view hidden>
+          <p class="waitlist-success-message">
+            <span class="waitlist-check" aria-hidden="true">&#10003;</span>
+            Your email has been recorded.<br>
+            We'll keep you updated on GradeX progress.
+          </p>
+          <button class="btn btn-secondary" type="button" data-waitlist-close>Close</button>
+        </div>
+      </div>
+    </div>
     <script src="nav.js"></script>
+    <script src="waitlist.js"></script>
   </body>
 </html>
