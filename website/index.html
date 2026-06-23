@@ -38,6 +38,7 @@
           <a href="#product">Product</a>
           <a href="docs.html">Docs</a>
           <a href="blog.html">Blog</a>
+          <a href="future.html">Future</a>
           <a href="https://github.com/gradex1606-dev/Gradex-research-cli" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="pricing.html">Pricing</a>
         </nav>
@@ -256,6 +257,22 @@
       </section>
     </main>
 
+    <section class="product-vision-cta-wrap" aria-label="Early access">
+      <div class="container">
+        <div class="future-vision-banner">
+          <div class="future-vision-banner-left">
+            <p class="future-vision-headline">Ship improvements.<br>Not guesses.</p>
+          </div>
+          <div class="future-vision-banner-center">
+            <p>Every change should be measured, benchmarked, and proven.</p>
+          </div>
+          <div class="future-vision-banner-right">
+            <button class="btn btn-primary" type="button" data-waitlist-open>Join Early Access</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <footer class="site-footer">
       <div class="container footer-grid">
         <div class="footer-brand">
@@ -265,7 +282,7 @@
           </a>
           <p>Autonomous code optimization. Measurable improvement, every run.</p>
         </div>
-        <div class="footer-col"><h4>Product</h4><a href="#product">Overview</a><a href="pricing.html">Pricing</a><a href="docs.html">Install</a></div>
+        <div class="footer-col"><h4>Product</h4><a href="#product">Overview</a><a href="future.html">Future</a><a href="pricing.html">Pricing</a><a href="docs.html">Install</a></div>
         <div class="footer-col"><h4>Resources</h4><a href="docs.html">Docs</a><a href="blog.html">Blog</a><a href="https://github.com/gradex1606-dev/Gradex-research-cli" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         <div class="footer-col"><h4>Social</h4><a href="https://github.com/gradex1606-dev/Gradex-research-cli" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://x.com/gradex__" rel="noopener noreferrer">X / Twitter</a></div>
         <div class="footer-col"><h4>Legal</h4><a href="https://github.com/gradex1606-dev/Gradex-research-cli/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></div>
@@ -273,6 +290,30 @@
       <div class="container footer-bottom">Copyright 2026 GradeX. Built with Python.</div>
     </footer>
     <div class="copy-toast" id="copy-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+    <div id="waitlist-modal" class="waitlist-modal" hidden aria-hidden="true">
+      <div class="waitlist-dialog" role="dialog" aria-modal="true" aria-labelledby="waitlist-title">
+        <button class="waitlist-close" type="button" data-waitlist-close aria-label="Close">&times;</button>
+        <div data-waitlist-form-view>
+          <h2 id="waitlist-title">Join Early Access</h2>
+          <p class="waitlist-lead">Get updates as GradeX ships new experiment and verification features.</p>
+          <form id="waitlist-form" novalidate>
+            <label class="waitlist-label" for="waitlist-email">Email Address</label>
+            <input id="waitlist-email" class="waitlist-input" type="email" name="email" autocomplete="email" placeholder="you@company.com" required>
+            <p class="waitlist-error" data-waitlist-error hidden></p>
+            <button id="waitlist-submit" class="btn btn-primary waitlist-submit" type="submit" disabled>Join Waitlist</button>
+          </form>
+        </div>
+        <div class="waitlist-success" data-waitlist-success-view hidden>
+          <p class="waitlist-success-message">
+            <span class="waitlist-check" aria-hidden="true">&#10003;</span>
+            Your email has been recorded.<br>
+            We'll keep you updated on GradeX progress.
+          </p>
+          <button class="btn btn-secondary" type="button" data-waitlist-close>Close</button>
+        </div>
+      </div>
+    </div>
     <script src="nav.js"></script>
+    <script src="waitlist.js"></script>
   </body>
 </html>

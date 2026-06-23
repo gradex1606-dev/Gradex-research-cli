@@ -35,6 +35,7 @@
           <a href="index.html#product">Product</a>
           <a href="docs.html">Docs</a>
           <a class="active" href="blog.html">Blog</a>
+          <a href="future.html">Future</a>
           <a href="https://github.com/gradex1606-dev/Gradex-research-cli" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="pricing.html">Pricing</a>
         </nav>
@@ -51,6 +52,38 @@
           <div class="eyebrow">Blog</div>
           <h1>Notes on measurable code improvement.</h1>
           <p>Product updates, engineering notes, and practical guides for running AI-driven experiments on real codebases.</p>
+        </div>
+      </section>
+
+      <section class="section future-compare-section blog-compare-section">
+        <div class="container">
+          <div class="section-header">
+            <div class="section-kicker">The difference</div>
+            <h2>Without GradeX vs With GradeX</h2>
+            <p>Evidence-driven engineering replaces intuition-only shipping.</p>
+          </div>
+          <div class="future-compare-grid">
+            <article class="future-compare-card future-compare-without">
+              <h3>Without GradeX</h3>
+              <ul class="future-compare-list">
+                <li>Changes ship on intuition</li>
+                <li>Few ideas get tested</li>
+                <li>No reliable baseline</li>
+                <li>Experiments disappear</li>
+                <li>Engineering decisions are hard to verify</li>
+              </ul>
+            </article>
+            <article class="future-compare-card future-compare-with">
+              <h3>With GradeX</h3>
+              <ul class="future-compare-list future-compare-list-positive">
+                <li>Every change is benchmarked</li>
+                <li>Multiple agents explore solutions</li>
+                <li>Only measurable improvements survive</li>
+                <li>Full experiment history</li>
+                <li>Evidence-driven shipping</li>
+              </ul>
+            </article>
+          </div>
         </div>
       </section>
 
@@ -96,13 +129,37 @@
     <footer class="site-footer">
       <div class="container footer-grid">
         <div class="footer-brand"><a class="brand" href="index.html"><svg class="logo-mark" viewBox="0 0 48 48"><defs><linearGradient id="gx-foot" x1="6" y1="6" x2="42" y2="42"><stop stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs><path fill="url(#gx-foot)" d="M9.4 5.8c2.1-2.1 5.5-2.1 7.6 0L24 12.9l7-7.1c2.1-2.1 5.5-2.1 7.6 0s2.1 5.5 0 7.6l-7.1 7L38.6 27c2.1 2.1 2.1 5.5 0 7.6s-5.5 2.1-7.6 0l-7-7-7 7c-2.1 2.1-5.5 2.1-7.6 0s-2.1-5.5 0-7.6l7.1-7.1-7.1-7c-2.1-2.1-2.1-5.5 0-7.6Z"/></svg><span>GradeX</span></a><p>Autonomous code optimization. Measurable improvement, every run.</p></div>
-        <div class="footer-col"><h4>Product</h4><a href="index.html#product">Overview</a><a href="pricing.html">Pricing</a></div>
+        <div class="footer-col"><h4>Product</h4><a href="index.html#product">Overview</a><a href="future.html">Future</a><a href="pricing.html">Pricing</a></div>
         <div class="footer-col"><h4>Resources</h4><a href="docs.html">Docs</a><a href="blog.html">Blog</a></div>
         <div class="footer-col"><h4>Social</h4><a href="https://github.com/gradex1606-dev/Gradex-research-cli" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://x.com/gradex__" rel="noopener noreferrer">X / Twitter</a></div>
         <div class="footer-col"><h4>Legal</h4><a href="https://github.com/gradex1606-dev/Gradex-research-cli/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></div>
       </div>
       <div class="container footer-bottom">Copyright 2026 GradeX. Built with Python.</div>
     </footer>
+    <div id="waitlist-modal" class="waitlist-modal" hidden aria-hidden="true">
+      <div class="waitlist-dialog" role="dialog" aria-modal="true" aria-labelledby="waitlist-title">
+        <button class="waitlist-close" type="button" data-waitlist-close aria-label="Close">&times;</button>
+        <div data-waitlist-form-view>
+          <h2 id="waitlist-title">Join Early Access</h2>
+          <p class="waitlist-lead">Get updates as GradeX ships new experiment and verification features.</p>
+          <form id="waitlist-form" novalidate>
+            <label class="waitlist-label" for="waitlist-email">Email Address</label>
+            <input id="waitlist-email" class="waitlist-input" type="email" name="email" autocomplete="email" placeholder="you@company.com" required>
+            <p class="waitlist-error" data-waitlist-error hidden></p>
+            <button id="waitlist-submit" class="btn btn-primary waitlist-submit" type="submit" disabled>Join Waitlist</button>
+          </form>
+        </div>
+        <div class="waitlist-success" data-waitlist-success-view hidden>
+          <p class="waitlist-success-message">
+            <span class="waitlist-check" aria-hidden="true">&#10003;</span>
+            Your email has been recorded.<br>
+            We'll keep you updated on GradeX progress.
+          </p>
+          <button class="btn btn-secondary" type="button" data-waitlist-close>Close</button>
+        </div>
+      </div>
+    </div>
     <script src="nav.js"></script>
+    <script src="waitlist.js"></script>
   </body>
 </html>

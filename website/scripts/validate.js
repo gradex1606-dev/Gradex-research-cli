@@ -4,8 +4,8 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.join(__dirname, "..");
-const pages = ["index.html", "docs.html", "blog.html", "pricing.html"];
-const requiredAssets = ["styles.css", "nav.js", "favicon.svg", "robots.txt", "sitemap.xml", "assets/hero-wave.png"];
+const pages = ["index.html", "docs.html", "blog.html", "pricing.html", "future.html"];
+const requiredAssets = ["styles.css", "nav.js", "waitlist.js", "favicon.svg", "robots.txt", "sitemap.xml", "assets/hero-wave.png"];
 const forbiddenPatterns = [
   /Sign\s*In/i,
   /console\.log\s*\(/,
