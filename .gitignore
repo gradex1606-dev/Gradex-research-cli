@@ -1,1 +1,9 @@
 .gradex/
+.gradex0/
+__pycache__/
+*.py[cod]
+.cursor/
+docs/x-post-*.md
+docs/gradex-roadmap-and-community-plan.md
+scripts/generate_superteam_grant_pdf.py
+scripts/generate_marketing_pdf.py

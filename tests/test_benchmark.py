@@ -26,6 +26,7 @@ class MockBackend(Backend):
         self.stdout = stdout
         self.exit_code = exit_code
         self.timed_out = timed_out
+        self.call_count = 0
 
     async def create_workspace(self, experiment_id: str) -> Path:  # noqa: D102
         return Path("/fake")
@@ -37,6 +38,8 @@ class MockBackend(Backend):
         timeout: int = 120,
         env: dict[str, str] | None = None,
     ) -> CommandResult:  # noqa: D102
+        self.last_cmd = cmd
+        self.call_count += 1
         return CommandResult(
             stdout=self.stdout,
             stderr="",
@@ -147,3 +150,43 @@ async def test_nonzero_exit_score_still_parsed() -> None:
         FAKE, ["bench"]
     )
     assert result.score == pytest.approx(41.2)
+
+
+@pytest.mark.anyio
+async def test_benchmark_cache_hit_skips_command(git_repo: Path, tmp_path: Path) -> None:
+    """Second run with same tree hash returns cached score without re-running."""
+    from gradex.runner.cache import BenchmarkCache
+
+    backend = MockBackend(stdout="41.2\n")
+    cache = BenchmarkCache(db_path=tmp_path / "bench-cache.db")
+    runner = BenchmarkRunner(backend, cache=cache)
+
+    first = await runner.run(git_repo, ["python", "bench.py"])
+    assert first.score == pytest.approx(41.2)
+    assert first.from_cache is False
+    assert backend.call_count == 1
+
+    second = await runner.run(git_repo, ["python", "bench.py"])
+    assert second.score == pytest.approx(41.2)
+    assert second.from_cache is True
+    assert backend.call_count == 1
+
+
+@pytest.mark.anyio
+async def test_benchmark_cache_hit_skips_command(git_repo: Path, tmp_path: Path) -> None:
+    """Second run with same tree hash returns cached score without re-running."""
+    from gradex.runner.cache import BenchmarkCache
+
+    backend = MockBackend(stdout="41.2\n")
+    cache = BenchmarkCache(db_path=tmp_path / "bench-cache.db")
+    runner = BenchmarkRunner(backend, cache=cache)
+
+    first = await runner.run(git_repo, ["python", "bench.py"])
+    assert first.score == pytest.approx(41.2)
+    assert first.from_cache is False
+    assert backend.call_count == 1
+
+    second = await runner.run(git_repo, ["python", "bench.py"])
+    assert second.score == pytest.approx(41.2)
+    assert second.from_cache is True
+    assert backend.call_count == 1

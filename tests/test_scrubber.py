@@ -28,6 +28,13 @@ def test_scrub_groq_key() -> None:
     assert "gsk_" not in result
 
 
+def test_scrub_openrouter_key() -> None:
+    text = "key=sk-or-v1-abcdefghijklmnopqrstuvwxyz123456"
+    result = scrub(text)
+    assert "sk-or-v1" not in result
+    assert "[REDACTED:openrouter-key]" in result
+
+
 def test_scrub_github_token() -> None:
     text = "token ghp_abcdefghijklmnopqrstuvwxyz123456789012"
     result = scrub(text)

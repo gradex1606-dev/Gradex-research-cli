@@ -1,4 +1,4 @@
-"""Unified LLM client supporting Anthropic, OpenAI, and Ollama."""
+"""Unified LLM client supporting Anthropic, OpenAI, Ollama, Groq, and OpenRouter."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ class LLMResponse:
 
 
 class LLMClient:
-    """Unified LLM client supporting Anthropic, OpenAI, and Ollama.
+    """Unified LLM client supporting Anthropic, OpenAI, Ollama, Groq, and OpenRouter.
 
     All three backends implement the same interface: a system prompt plus a
     user prompt produce a text response.  Provider SDKs are imported lazily
@@ -104,10 +104,12 @@ class LLMClient:
             return await self._complete_ollama(system, user, tokens)
         elif provider == "groq":
             return await self._complete_groq(system, user, tokens)
+        elif provider == "openrouter":
+            return await self._complete_openrouter(system, user, tokens)
         else:
             raise ValueError(
                 f"Unknown provider: {provider!r}. "
-                f"Choose: anthropic, openai, ollama, groq"
+                f"Choose: anthropic, openai, ollama, groq, openrouter"
             )
 
     # ------------------------------------------------------------------
@@ -169,12 +171,56 @@ class LLMClient:
         Get a key at https://console.groq.com.
         Best free model: ``llama-3.3-70b-versatile``.
         """
+        return await self._complete_openai_compatible(
+            base_url=self._config.groq_base_url,
+            provider="groq",
+            system=system,
+            user=user,
+            max_tokens=max_tokens,
+        )
+
+    async def _complete_openrouter(
+        self, system: str, user: str, max_tokens: int
+    ) -> LLMResponse:
+        """Call OpenRouter's OpenAI-compatible endpoint.
+
+        OpenRouter offers free-tier models for testing.
+        Get a key at https://openrouter.ai/keys.
+        Default free model: ``meta-llama/llama-3.2-3b-instruct:free``.
+        For serious ``optimize`` runs, prefer Groq or a paid model.
+        """
+        return await self._complete_openai_compatible(
+            base_url=self._config.openrouter_base_url,
+            provider="openrouter",
+            system=system,
+            user=user,
+            max_tokens=max_tokens,
+            extra_headers={
+                "HTTP-Referer": "https://gradex.dev",
+                "X-Title": "GradeX",
+            },
+        )
+
+    async def _complete_openai_compatible(
+        self,
+        base_url: str,
+        provider: str,
+        system: str,
+        user: str,
+        max_tokens: int,
+        extra_headers: dict[str, str] | None = None,
+    ) -> LLMResponse:
+        """Shared OpenAI-compatible chat completion (Groq, OpenRouter, etc.)."""
         from openai import AsyncOpenAI
 
-        client = AsyncOpenAI(
-            api_key=self._config.api_key or None,
-            base_url=self._config.groq_base_url,
-        )
+        client_kwargs: dict[str, object] = {
+            "api_key": self._config.api_key or None,
+            "base_url": base_url,
+        }
+        if extra_headers:
+            client_kwargs["default_headers"] = extra_headers
+
+        client = AsyncOpenAI(**client_kwargs)
         resp = await client.chat.completions.create(
             model=self._config.effective_model(),
             max_tokens=max_tokens,
@@ -190,7 +236,7 @@ class LLMClient:
             text=choice.message.content or "",
             input_tokens=usage.prompt_tokens if usage else 0,
             output_tokens=usage.completion_tokens if usage else 0,
-            provider="groq",
+            provider=provider,
             model=self._config.effective_model(),
         )
 

@@ -71,13 +71,14 @@
             <p>Run these commands in any Python project with git initialized.</p>
             <div class="code-block">pip install gradex
 gradex install cursor
-gradex discover "make the parser faster" --provider groq --api-key &lt;key&gt;
-gradex optimize --provider groq --api-key &lt;key&gt;
+gradex discover "make the parser faster"
+gradex optimize
 gradex dashboard<button class="copy-btn" type="button" data-copy='pip install gradex
 gradex install cursor
-gradex discover "make the parser faster" --provider groq --api-key <key>
-gradex optimize --provider groq --api-key <key>
+gradex discover "make the parser faster"
+gradex optimize
 gradex dashboard' aria-label="Copy command to clipboard">Copy</button></div>
+            <p>After <code>gradex install</code>, GradeX offers a one-time interactive setup for provider, model, and API key (or skip and use flags). Run <code>gradex configure</code> anytime to update saved settings.</p>
           </section>
 
           <section id="cli" class="docs-section">
@@ -86,7 +87,9 @@ gradex dashboard' aria-label="Copy command to clipboard">Copy</button></div>
             <table class="command-table">
               <thead><tr><th scope="col">Command</th><th scope="col">Description</th><th scope="col">Common flags</th></tr></thead>
               <tbody>
-                <tr><td><code>gradex install</code></td><td>Install GradeX rules or skills into a coding host.</td><td><code>cursor</code>, <code>claude-code</code></td></tr>
+                <tr><td><code>gradex install</code></td><td>Install GradeX rules or skills into a coding host.</td><td><code>cursor</code>, <code>claude-code</code>, <code>--no-setup</code></td></tr>
+                <tr><td><code>gradex configure</code></td><td>Set up or update LLM provider, model, and API key.</td><td>none</td></tr>
+                <tr><td><code>gradex models</code></td><td>List recommended models for a provider.</td><td><code>--provider</code></td></tr>
                 <tr><td><code>gradex doctor</code></td><td>Check whether your environment is ready.</td><td><code>cursor</code>, <code>claude-code</code></td></tr>
                 <tr><td><code>gradex dashboard</code></td><td>Start the live dashboard on localhost.</td><td><code>--port</code>, <code>--no-browser</code></td></tr>
                 <tr><td><code>gradex upgrade</code></td><td>Check PyPI for a newer GradeX release.</td><td>none</td></tr>
@@ -101,18 +104,19 @@ gradex dashboard' aria-label="Copy command to clipboard">Copy</button></div>
 
           <section id="providers" class="docs-section">
             <h2>Provider setup</h2>
-            <p>Use CLI flags for a quick start or store defaults in <code>~/.gradex/config.toml</code>.</p>
+            <p>Use CLI flags for a quick start, run <code>gradex configure</code> for interactive setup, or store defaults in <code>~/.gradex/config.toml</code>.</p>
             <div class="code-block">[llm]
 provider = "groq"
 model = "llama-3.3-70b-versatile"
 api_key = "gsk_..."
 
-# Other providers: anthropic, openai, ollama<button class="copy-btn" type="button" data-copy='[llm]
+# Other providers: anthropic, openai, ollama, openrouter<button class="copy-btn" type="button" data-copy='[llm]
 provider = "groq"
 model = "llama-3.3-70b-versatile"
 api_key = "gsk_..."' aria-label="Copy command to clipboard">Copy</button></div>
             <div class="card-grid">
               <article class="card featured"><h3>Groq</h3><p>Recommended free cloud provider. Fast inference and no local setup.</p></article>
+              <article class="card"><h3>OpenRouter</h3><p>Try GradeX with free-tier models using one API key. Best for testing <code>discover</code>.</p></article>
               <article class="card"><h3>Ollama</h3><p>Fully local. Run <code>ollama serve</code> and pull a model before starting.</p></article>
               <article class="card"><h3>Anthropic</h3><p>Use Claude models when you need deeper code reasoning.</p></article>
               <article class="card"><h3>OpenAI</h3><p>Use GPT models through the OpenAI-compatible path.</p></article>
@@ -136,8 +140,10 @@ api_key = "gsk_..."' aria-label="Copy command to clipboard">Copy</button></div>
             <p>Use stats and history to inspect run quality, export data, and prove that changes improved real metrics.</p>
             <div class="code-block">gradex stats
 gradex stats --json run.json --csv run.csv
+gradex report -o run-report.html
 gradex history --limit 20<button class="copy-btn" type="button" data-copy="gradex stats
 gradex stats --json run.json --csv run.csv
+gradex report -o run-report.html
 gradex history --limit 20" aria-label="Copy command to clipboard">Copy</button></div>
           </section>
 

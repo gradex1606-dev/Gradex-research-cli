@@ -8,6 +8,7 @@ from typing import Any
 # Pattern list — order matters, more specific first.
 SECRET_PATTERNS: list[tuple[str, str]] = [
     (r"sk-ant-[a-zA-Z0-9\-_]{20,}", "[REDACTED:anthropic-key]"),
+    (r"sk-or-v1-[a-zA-Z0-9]{20,}", "[REDACTED:openrouter-key]"),
     (r"sk-[a-zA-Z0-9]{20,}", "[REDACTED:openai-key]"),
     (r"gsk_[a-zA-Z0-9]{20,}", "[REDACTED:groq-key]"),
     (r"gh[pousr]_[a-zA-Z0-9]{36,}", "[REDACTED:github-token]"),

@@ -94,9 +94,17 @@ def install(
         ...,
         help="Coding host to install the plugin into (e.g. claude-code, cursor).",
     ),
+    no_setup: bool = typer.Option(
+        False,
+        "--no-setup",
+        "--skip-setup",
+        help="Skip interactive model setup after install.",
+    ),
 ) -> None:
     """Install the gradex plugin into the given coding host."""
+    from gradex.config import is_llm_configured
     from gradex.hosts import get_installer
+    from gradex.setup_wizard import run_model_setup
 
     try:
         installer = get_installer(host)
@@ -115,9 +123,59 @@ def install(
             console.print(f"  [dim]wrote {f}[/dim]")
         if result.message:
             console.print(result.message)
+
+        if not no_setup and not is_llm_configured():
+            saved = run_model_setup(console, allow_skip=True)
+            if saved is not None:
+                _print_workflow_next_steps()
     else:
         console.print(f"[red]✗[/red] {result.message or 'Installation failed.'}")
         raise typer.Exit(code=1)
+
+
+def _print_workflow_next_steps() -> None:
+    console.print()
+    console.print("Next: [bold]gradex discover \"make this repo faster\"[/bold]")
+    console.print("      [bold]gradex optimize[/bold]")
+
+
+# ---------------------------------------------------------------------------
+# configure / models
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def configure() -> None:
+    """Set up or update your LLM provider, model, and API key."""
+    from gradex.config import is_llm_configured
+    from gradex.setup_wizard import run_model_setup
+
+    saved = run_model_setup(
+        console,
+        allow_skip=False,
+        confirm_overwrite=is_llm_configured(),
+    )
+    if saved is not None:
+        _print_workflow_next_steps()
+
+
+@app.command()
+def models(
+    provider: str = typer.Option(
+        "",
+        help="Provider to list models for (default: from saved config or groq).",
+    ),
+) -> None:
+    """List recommended models for a provider."""
+    from gradex.config import load_llm_config
+    from gradex.setup_wizard import print_models
+
+    chosen = provider.strip() or load_llm_config().provider
+    try:
+        print_models(console, chosen)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from None
 
 
 # ---------------------------------------------------------------------------
@@ -308,7 +366,10 @@ def discover(
     hint: str = typer.Argument(
         "", help="What to optimise, e.g. 'make the parser faster'."
     ),
-    provider: str = typer.Option("", help="LLM provider: anthropic, openai, ollama."),
+    provider: str = typer.Option(
+        "",
+        help="LLM provider: groq, openrouter, anthropic, openai, ollama.",
+    ),
     model: str = typer.Option("", help="Model name override."),
     api_key: str = typer.Option("", help="API key (or set in ~/.gradex/config.toml)."),
 ) -> None:
@@ -318,9 +379,7 @@ def discover(
     from gradex.ai.client import LLMClient
     from gradex.ai.discover import DiscoverSkill
     from gradex.backends.worktree import WorktreeBackend
-    from gradex.config import load_llm_config
-
-    # CLI flags take precedence over file config.
+    from gradex.config import is_llm_configured, load_llm_config
     config = load_llm_config()
     if provider:
         config.provider = provider
@@ -328,6 +387,12 @@ def discover(
         config.model = model
     if api_key:
         config.api_key = api_key
+
+    if not is_llm_configured() and not provider and not api_key:
+        console.print(
+            "[dim]Tip: run [bold]gradex configure[/bold] to save your provider "
+            "and API key.[/dim]"
+        )
 
     console.print(
         f"[bold]Provider:[/bold] {config.provider} / {config.effective_model()}"
@@ -339,6 +404,13 @@ def discover(
     elif config.provider == "ollama":
         console.print(
             "[dim]Local model — make sure Ollama is running (ollama serve)[/dim]"
+        )
+    elif config.provider == "openrouter":
+        console.print(
+            "[dim]Free-tier models for testing. Get key at openrouter.ai/keys[/dim]"
+        )
+        console.print(
+            "[dim]For serious optimize runs, prefer --provider groq or a paid model[/dim]"
         )
 
     client = LLMClient(config)
@@ -374,7 +446,10 @@ def optimize(
     subagents: int = typer.Option(3, help="Parallel subagents per round"),
     budget: int = typer.Option(5, help="Max experiments per subagent"),
     stall: int = typer.Option(3, help="Rounds without improvement before stopping"),
-    provider: str = typer.Option("", help="LLM provider: anthropic, openai, ollama"),
+    provider: str = typer.Option(
+        "",
+        help="LLM provider: groq, openrouter, anthropic, openai, ollama.",
+    ),
     model: str = typer.Option("", help="Model override"),
     api_key: str = typer.Option("", help="API key"),
     run_id: str = typer.Option("", help="Run ID to continue (default: latest run)"),
@@ -546,6 +621,37 @@ def stats(
         exporter = RunExporter(analytics)
         path = exporter.to_csv(run.id, Path(export_csv))
         console.print(f"[green]✓[/green] Exported CSV: {path}")
+
+
+# ---------------------------------------------------------------------------
+# report
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def report(
+    run_id: str = typer.Option("", help="Run ID (default: latest)"),
+    output: str = typer.Option(
+        "gradex-report.html",
+        "--output",
+        "-o",
+        help="Output HTML file path",
+    ),
+) -> None:
+    """Export a shareable HTML report for a run."""
+    from gradex.export import RunExporter
+    from gradex.repository import RunRepository
+
+    run_repo = RunRepository()
+    run = run_repo.get(run_id) if run_id else run_repo.get_latest()
+    if run is None:
+        console.print("[red]No run found. Run `gradex discover` first.[/red]")
+        raise typer.Exit(1)
+
+    exporter = RunExporter()
+    path = exporter.to_html(run.id, Path(output))
+    console.print(f"[green]✓[/green] Report saved: {path}")
+    console.print("[dim]Share this file or open it in any browser.[/dim]")
 
 
 # ---------------------------------------------------------------------------

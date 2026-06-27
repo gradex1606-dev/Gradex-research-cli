@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import os
 import re
+import shlex
 from dataclasses import dataclass
 from pathlib import Path
 
 from gradex.backends.base import Backend, CommandResult
+from gradex.runner.cache import BenchmarkCache, get_git_tree_hash
 
 # Matches integers, decimals, and scientific-notation floats (e.g. 1.2e-3).
 _FLOAT_RE = re.compile(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?")
@@ -23,6 +25,7 @@ class BenchmarkResult:
     duration_ms: int
     timed_out: bool
     parse_error: str | None = None
+    from_cache: bool = False
 
 
 def _try_float(value: str) -> float | None:
@@ -58,9 +61,23 @@ class BenchmarkRunner:
     The runner never raises — all errors are reflected in the result object.
     """
 
-    def __init__(self, backend: Backend, timeout: int = 120) -> None:
+    def __init__(
+        self,
+        backend: Backend,
+        timeout: int = 120,
+        cache: BenchmarkCache | None | bool = None,
+    ) -> None:
         self._backend = backend
         self._timeout = timeout
+        if cache is False:
+            self._cache: BenchmarkCache | None = None
+        elif cache is None:
+            self._cache = BenchmarkCache()
+        else:
+            self._cache = cache
+
+    def _cmd_key(self, benchmark_cmd: list[str]) -> str:
+        return shlex.join(benchmark_cmd)
 
     async def run(
         self,
@@ -71,7 +88,25 @@ class BenchmarkRunner:
 
         A non-zero exit code does **not** prevent score parsing — some benchmarks
         exit non-zero yet still print a valid score on stdout.
+
+        When a fresh score is computed for an unchanged git tree, the result is
+        stored in the benchmark cache (24h TTL).
         """
+        cmd_key = self._cmd_key(benchmark_cmd)
+        tree_hash = get_git_tree_hash(workspace_path)
+
+        if self._cache is not None:
+            cached_score = self._cache.get(cmd_key, tree_hash)
+            if cached_score is not None:
+                return BenchmarkResult(
+                    score=cached_score,
+                    stdout="(cached)",
+                    stderr="",
+                    duration_ms=0,
+                    timed_out=False,
+                    parse_error=None,
+                    from_cache=True,
+                )
         run_env = os.environ.copy()
         root = str(workspace_path.resolve())
         sep = ";" if os.name == "nt" else ":"
@@ -111,21 +146,30 @@ class BenchmarkRunner:
         # Strategy 1 — entire line
         score = _try_float(last.strip())
         if score is not None:
-            return _make_ok(score, raw)
+            result = _make_ok(score, raw)
+            if self._cache is not None and tree_hash:
+                self._cache.put(cmd_key, tree_hash, score)
+            return result
 
         # Strategy 2 — last whitespace token
         tokens = last.split()
         if tokens:
             score = _try_float(tokens[-1])
             if score is not None:
-                return _make_ok(score, raw)
+                result = _make_ok(score, raw)
+                if self._cache is not None and tree_hash:
+                    self._cache.put(cmd_key, tree_hash, score)
+                return result
 
         # Strategy 3 — first float-like substring via regex
         m = _FLOAT_RE.search(last)
         if m:
             score = _try_float(m.group())
             if score is not None:
-                return _make_ok(score, raw)
+                result = _make_ok(score, raw)
+                if self._cache is not None and tree_hash:
+                    self._cache.put(cmd_key, tree_hash, score)
+                return result
 
         return BenchmarkResult(
             score=None,

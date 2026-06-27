@@ -2,19 +2,31 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from unittest.mock import MagicMock
+
 import pytest
 from typer.testing import CliRunner
 
 from gradex.cli import app
+from gradex.config import LLMConfig
+from gradex.hosts.base import InstallResult
 
 runner = CliRunner()
 
 
 def test_help_lists_all_subcommands() -> None:
-    """gradex --help should list all four subcommands."""
+    """gradex --help should list core subcommands."""
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    for cmd in ("install", "doctor", "dashboard", "upgrade"):
+    for cmd in (
+        "install",
+        "configure",
+        "models",
+        "doctor",
+        "dashboard",
+        "upgrade",
+    ):
         assert cmd in result.output, f"'{cmd}' missing from --help output"
 
 
@@ -83,3 +95,91 @@ def test_doctor_output_structure() -> None:
     """doctor should print a header line mentioning the host name."""
     result = runner.invoke(app, ["doctor", "claude-code"])
     assert "claude-code" in result.output
+
+
+def _mock_successful_installer(tmp_path: Path) -> MagicMock:
+    installer = MagicMock()
+    installer.display_name = "Cursor"
+    installer.install.return_value = InstallResult(
+        success=True,
+        host="cursor",
+        plugin_dir=tmp_path / ".cursor" / "rules",
+        files_written=["evo-discover.mdc", "evo-optimize.mdc"],
+        message="",
+    )
+    return installer
+
+
+def test_install_no_setup_skips_wizard(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """install --no-setup should not invoke the model setup wizard."""
+    setup_called: list[bool] = []
+
+    def fake_setup(*args: object, **kwargs: object) -> None:
+        setup_called.append(True)
+        return None
+
+    monkeypatch.setattr("gradex.setup_wizard.run_model_setup", fake_setup)
+    monkeypatch.setattr(
+        "gradex.hosts.get_installer",
+        lambda host: _mock_successful_installer(tmp_path),
+    )
+    monkeypatch.setattr("gradex.config.is_llm_configured", lambda: False)
+
+    result = runner.invoke(app, ["install", "cursor", "--no-setup"])
+    assert result.exit_code == 0
+    assert setup_called == []
+
+
+def test_install_runs_setup_when_unconfigured(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """install should run model setup when LLM config is missing."""
+    setup_called: list[bool] = []
+
+    def fake_setup(*args: object, **kwargs: object) -> LLMConfig:
+        setup_called.append(True)
+        return LLMConfig(provider="groq", api_key="test", model="x")
+
+    monkeypatch.setattr("gradex.setup_wizard.run_model_setup", fake_setup)
+    monkeypatch.setattr(
+        "gradex.hosts.get_installer",
+        lambda host: _mock_successful_installer(tmp_path),
+    )
+    monkeypatch.setattr("gradex.config.is_llm_configured", lambda: False)
+
+    result = runner.invoke(app, ["install", "cursor"])
+    assert result.exit_code == 0
+    assert setup_called == [True]
+    assert "gradex discover" in result.output
+
+
+def test_configure_command_exists(monkeypatch: pytest.MonkeyPatch) -> None:
+    """configure should appear in help and accept invocation."""
+    help_result = runner.invoke(app, ["configure", "--help"])
+    assert help_result.exit_code == 0
+    assert "LLM provider" in help_result.output
+
+    saved: list[LLMConfig] = []
+
+    def fake_setup(*args: object, **kwargs: object) -> LLMConfig:
+        config = LLMConfig(provider="groq", api_key="k", model="m")
+        saved.append(config)
+        return config
+
+    monkeypatch.setattr("gradex.setup_wizard.run_model_setup", fake_setup)
+    monkeypatch.setattr("gradex.config.is_llm_configured", lambda: False)
+
+    result = runner.invoke(app, ["configure"])
+    assert result.exit_code == 0
+    assert saved
+    assert "gradex discover" in result.output
+
+
+def test_models_lists_provider_models() -> None:
+    """models should print curated models for a provider."""
+    result = runner.invoke(app, ["models", "--provider", "groq"])
+    assert result.exit_code == 0
+    assert "llama-3.3-70b-versatile" in result.output
+

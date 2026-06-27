@@ -16,17 +16,20 @@ pip install gradex
 
 ```bash
 pip install gradex
-gradex install cursor
+gradex install cursor          # one-time provider + model setup
 gradex discover "make this repo faster"
 gradex optimize
 gradex dashboard
 ```
 
+After install, GradeX walks you through provider, model, and API key setup (or skip and use CLI flags). Re-run anytime with `gradex configure`. Use `gradex install cursor --no-setup` in CI.
+
 ## Providers
 
 | Provider | Best for | Notes |
 |---|---|---|
-| Groq | Free cloud runs | Free tier available, fast iteration |
+| Groq | Free cloud runs | Default. Best for serious `optimize` runs |
+| OpenRouter | Low-friction testing | Free-tier models; one API key, many models |
 | Anthropic | High quality reasoning | Strong patch planning and code edits |
 | OpenAI | General purpose | Broad model options |
 | Ollama | Local/private | Runs fully on your machine |
@@ -35,13 +38,16 @@ gradex dashboard
 
 | Command | Description |
 |---|---|
-| `gradex install <host>` | Installs Gradex integration for a coding host |
+| `gradex install <host>` | Installs Gradex integration for a coding host (optional one-time model setup) |
+| `gradex configure` | Set up or update LLM provider, model, and API key |
+| `gradex models` | List recommended models for a provider |
 | `gradex doctor <host>` | Checks host environment and setup health |
 | `gradex dashboard` | Starts live optimization dashboard |
 | `gradex upgrade` | Checks PyPI for newer Gradex versions |
 | `gradex discover [hint]` | Discovers benchmark target and baseline |
 | `gradex optimize` | Runs autonomous optimization loop |
 | `gradex stats` | Shows run analytics and optional exports |
+| `gradex report` | Exports a shareable HTML run report |
 | `gradex history` | Lists recent optimization runs |
 
 ## How It Works

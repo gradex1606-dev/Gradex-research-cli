@@ -134,3 +134,15 @@ def test_export_csv_scores_formatted(seeded_run, tmp_path: Path) -> None:  # typ
     passed_rows = [r for r in rows if r["status"] == "passed"]
     assert len(passed_rows) == 3
     assert all(r["score"] != "" for r in passed_rows)
+
+
+def test_export_html_creates_file(seeded_run, tmp_path: Path) -> None:  # type: ignore[no-untyped-def]
+    from gradex.export import RunExporter
+
+    exporter = RunExporter()
+    path = exporter.to_html(seeded_run.id, tmp_path / "report.html")
+    assert path.exists()
+    content = path.read_text(encoding="utf-8")
+    assert "GradeX Run Report" in content
+    assert seeded_run.id[:8] in content
+    assert "<table>" in content
