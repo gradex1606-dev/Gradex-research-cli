@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gradex"
-version = "0.1.0"
+version = "0.1.1"
 description = "Measurable code improvement — autonomous optimization loop"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.1
+
 ### Added
 
 - **Interactive model setup** — after `gradex install`, optional provider/model/API key wizard; `gradex configure` to re-run; `gradex models` to list options; `--no-setup` for CI.
