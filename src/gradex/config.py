@@ -167,3 +167,44 @@ def save_llm_config(config: LLMConfig) -> Path:
         except OSError:
             pass
     return CONFIG_PATH
+
+
+# USD per 1M tokens (rough static estimates for cost visibility in stats).
+LLM_PRICING_USD_PER_1M: dict[str, dict[str, tuple[float, float]]] = {
+    "groq": {
+        "llama-3.3-70b-versatile": (0.0, 0.0),
+        "llama-3.1-8b-instant": (0.0, 0.0),
+    },
+    "openrouter": {
+        "meta-llama/llama-3.2-3b-instruct:free": (0.0, 0.0),
+        "google/gemma-2-9b-it:free": (0.0, 0.0),
+    },
+    "anthropic": {
+        "claude-sonnet-4-6": (3.0, 15.0),
+        "claude-opus-4-6": (15.0, 75.0),
+    },
+    "openai": {
+        "gpt-4o": (2.5, 10.0),
+        "gpt-4o-mini": (0.15, 0.6),
+    },
+    "ollama": {
+        "llama3": (0.0, 0.0),
+    },
+}
+
+
+def estimate_llm_cost_usd(
+    provider: str,
+    model: str,
+    input_tokens: int,
+    output_tokens: int,
+) -> float:
+    """Return estimated USD cost for token usage (0.0 when unknown or free)."""
+    provider_rates = LLM_PRICING_USD_PER_1M.get(provider, {})
+    in_rate, out_rate = provider_rates.get(model, (0.0, 0.0))
+    if not provider_rates:
+        return 0.0
+    if model not in provider_rates and provider in ("groq", "openrouter", "ollama"):
+        in_rate, out_rate = 0.0, 0.0
+    cost = (input_tokens / 1_000_000) * in_rate + (output_tokens / 1_000_000) * out_rate
+    return round(cost, 4)

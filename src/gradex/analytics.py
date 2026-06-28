@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
+from gradex.config import estimate_llm_cost_usd, load_llm_config
 from gradex.repository import ExperimentRepository, RunRepository
 
 
@@ -46,6 +47,12 @@ class RunSummary:
     rounds_estimated: int  # total // 3 as a reasonable estimate
     created_at: datetime
     gate_cmds: list[str]
+    primary_language: str
+    total_input_tokens: int
+    total_output_tokens: int
+    llm_call_count: int
+    estimated_cost_usd: float
+    cost_model_label: str
 
 
 @dataclass
@@ -113,6 +120,26 @@ class RunAnalytics:
         total = len(experiments)
         rounds_estimated = max(1, total // 3)
 
+        total_in = sum(e.input_tokens for e in experiments)
+        total_out = sum(e.output_tokens for e in experiments)
+        llm_calls = sum(
+            1 for e in experiments if e.input_tokens > 0 or e.output_tokens > 0
+        )
+        provider = load_llm_config().provider
+        cost_model = next(
+            (e.llm_model for e in experiments if e.llm_model),
+            load_llm_config().effective_model(),
+        )
+        estimated_cost = sum(
+            estimate_llm_cost_usd(provider, e.llm_model or cost_model, e.input_tokens, e.output_tokens)
+            for e in experiments
+            if e.input_tokens or e.output_tokens
+        )
+        if estimated_cost == 0.0 and (total_in or total_out):
+            estimated_cost = estimate_llm_cost_usd(
+                provider, cost_model, total_in, total_out
+            )
+
         return RunSummary(
             run_id=run.id,
             run_id_short=run.id[:8],
@@ -128,6 +155,12 @@ class RunAnalytics:
             rounds_estimated=rounds_estimated,
             created_at=run.created_at,
             gate_cmds=run.get_gate_cmds(),
+            primary_language=getattr(run, "primary_language", "python"),
+            total_input_tokens=total_in,
+            total_output_tokens=total_out,
+            llm_call_count=llm_calls,
+            estimated_cost_usd=estimated_cost,
+            cost_model_label=f"{provider} / {cost_model}",
         )
 
     def get_score_over_time(self, run_id: str) -> list[ScorePoint]:

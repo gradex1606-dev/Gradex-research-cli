@@ -93,9 +93,11 @@ gradex dashboard' aria-label="Copy command to clipboard">Copy</button></div>
                 <tr><td><code>gradex doctor</code></td><td>Check whether your environment is ready.</td><td><code>cursor</code>, <code>claude-code</code></td></tr>
                 <tr><td><code>gradex dashboard</code></td><td>Start the live dashboard on localhost.</td><td><code>--port</code>, <code>--no-browser</code></td></tr>
                 <tr><td><code>gradex upgrade</code></td><td>Check PyPI for a newer GradeX release.</td><td>none</td></tr>
-                <tr><td><code>gradex discover</code></td><td>Analyze the repo and capture a baseline score.</td><td><code>--provider</code>, <code>--model</code>, <code>--api-key</code></td></tr>
+                <tr><td><code>gradex discover</code></td><td>Analyze the repo and capture a baseline score (Python or Node).</td><td><code>--provider</code>, <code>--model</code>, <code>--api-key</code></td></tr>
                 <tr><td><code>gradex optimize</code></td><td>Run the parallel optimization loop.</td><td><code>--subagents</code>, <code>--budget</code>, <code>--stall</code></td></tr>
-                <tr><td><code>gradex stats</code></td><td>Show analytics for a run and export JSON or CSV.</td><td><code>--json</code>, <code>--csv</code>, <code>--run-id</code></td></tr>
+                <tr><td><code>gradex stats</code></td><td>Show analytics, token usage, cost estimate; export JSON or CSV.</td><td><code>--json</code>, <code>--csv</code>, <code>--run-id</code></td></tr>
+                <tr><td><code>gradex traces</code></td><td>View experiment trace timeline.</td><td><code>--experiment</code>, <code>--json</code></td></tr>
+                <tr><td><code>gradex report</code></td><td>Export a shareable HTML run report.</td><td><code>--output</code>, <code>--run-id</code></td></tr>
                 <tr><td><code>gradex history</code></td><td>List recent optimization runs.</td><td><code>--limit</code></td></tr>
               </tbody>
             </table>

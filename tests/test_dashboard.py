@@ -102,6 +102,69 @@ async def test_status_with_run(
     data: dict[str, Any] = response.json()
     assert data["run"]["id"] == run.id
     assert len(data["experiments"]) == 2
+    assert "full_id" in data["experiments"][0]
+
+
+@pytest.mark.anyio
+async def test_traces_endpoint(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    db_env: None,
+) -> None:
+    """GET /api/traces/{id} returns trace entries."""
+    from gradex.traces import TraceWriter, trace_path_for
+
+    run = RunRepository().create("bench", "higher", [], 1.0)
+    exp = ExperimentRepository().create(run.id, None, "branch-a")
+    TraceWriter(trace_path_for(exp.id)).write("info", "started", {"n": 1})
+
+    app = create_app()
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get(f"/api/traces/{exp.id[:8]}")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["experiment_id"] == exp.id
+    assert len(data["entries"]) == 1
+
+
+@pytest.mark.anyio
+async def test_experiment_detail_endpoint(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    db_env: None,
+) -> None:
+    """GET /api/experiments/{id} returns metadata and traces."""
+    from gradex.traces import TraceWriter, trace_path_for
+
+    run = RunRepository().create("bench", "higher", [], 1.0)
+    exp = ExperimentRepository().create(run.id, None, "branch-a")
+    ExperimentRepository().update_llm_usage(exp.id, 10, 5, "gpt-4o")
+    TraceWriter(trace_path_for(exp.id)).write("info", "gate", {"passed": True})
+
+    app = create_app()
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get(f"/api/experiments/{exp.id}")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["experiment"]["branch"] == "branch-a"
+    assert data["experiment"]["input_tokens"] == 10
+    assert len(data["traces"]) == 1
+
+
+@pytest.mark.anyio
+async def test_experiment_detail_not_found(db_env: None) -> None:
+    app = create_app()
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/api/experiments/no-such-id")
+    assert response.status_code == 404
 
 
 # ---------------------------------------------------------------------------

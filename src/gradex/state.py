@@ -6,7 +6,7 @@ import json
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from sqlalchemy import Engine, text
 from sqlmodel import Field, SQLModel, create_engine
@@ -50,7 +50,34 @@ def get_engine() -> Engine:
         conn.execute(text("PRAGMA journal_mode=WAL"))
         conn.commit()
     SQLModel.metadata.create_all(engine)
+    _migrate_schema(engine)
     return engine
+
+
+def _table_columns(conn: Any, table: str) -> set[str]:
+    rows = conn.execute(text(f"PRAGMA table_info({table})")).fetchall()
+    return {str(row[1]) for row in rows}
+
+
+def _migrate_schema(engine: Engine) -> None:
+    """Add columns introduced after initial releases (SQLite has no ALTER IF NOT EXISTS)."""
+    migrations: dict[str, list[tuple[str, str]]] = {
+        "run": [
+            ("primary_language", "TEXT NOT NULL DEFAULT 'python'"),
+        ],
+        "experiment": [
+            ("input_tokens", "INTEGER NOT NULL DEFAULT 0"),
+            ("output_tokens", "INTEGER NOT NULL DEFAULT 0"),
+            ("llm_model", "TEXT NOT NULL DEFAULT ''"),
+        ],
+    }
+    with engine.connect() as conn:
+        for table, cols in migrations.items():
+            existing = _table_columns(conn, table)
+            for name, col_def in cols:
+                if name not in existing:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {col_def}"))
+        conn.commit()
 
 
 class Run(SQLModel, table=True):
@@ -62,6 +89,7 @@ class Run(SQLModel, table=True):
     gate_cmds: str = Field(default="[]")  # JSON-encoded list[str]
     baseline_score: float
     baseline_experiment_id: str = ""
+    primary_language: str = "python"  # python | node
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     def get_gate_cmds(self) -> list[str]:
@@ -84,4 +112,7 @@ class Experiment(SQLModel, table=True):
     gate_passed: bool | None = None
     status: str = "pending"  # pending | running | passed | failed | rejected
     traces_path: str = ""
+    input_tokens: int = 0
+    output_tokens: int = 0
+    llm_model: str = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

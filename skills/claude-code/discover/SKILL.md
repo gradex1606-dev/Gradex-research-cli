@@ -14,7 +14,7 @@ benchmark, and record a baseline experiment.
 
 ## Prerequisites
 - The `gradex` CLI must be installed (`gradex --version` should succeed).
-- The repo must have at least one committed Python file.
+- The repo should be Python or Node/TypeScript (GradeX auto-detects from `pyproject.toml` or `package.json`).
 - You must be running from the repo root.
 
 ## Free provider options

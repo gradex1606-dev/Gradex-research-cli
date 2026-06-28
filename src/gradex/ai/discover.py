@@ -12,6 +12,7 @@ from typing import Literal
 import jinja2
 
 from gradex.ai.client import LLMClient
+from gradex.ai.language import PrimaryLanguage, detect_primary_language
 from gradex.backends.base import Backend
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
@@ -33,6 +34,8 @@ class DiscoverResult:
     gate_cmds: list[str]
     baseline_score: float
     run_id: str
+    primary_language: PrimaryLanguage
+    benchmark_cmd: str
     notes: str
 
 
@@ -78,7 +81,8 @@ class DiscoverSkill:
         """
         # 1 — Repo context
         repo_context = self.scan_repo(repo_root)
-        test_files = self.detect_test_files(repo_root)
+        primary_language = detect_primary_language(repo_root)
+        test_files = self.detect_test_files(repo_root, primary_language)
 
         # 2 — Target + metric
         analysis_system = (PROMPTS_DIR / "repo_analysis.md").read_text(encoding="utf-8")
@@ -91,8 +95,13 @@ class DiscoverSkill:
         direction = self._infer_direction(metric)
 
         # 3 — Benchmark script
+        bench_template = (
+            "benchmark_design_node.md"
+            if primary_language == "node"
+            else "benchmark_design.md"
+        )
         bench_system = jinja2.Template(
-            (PROMPTS_DIR / "benchmark_design.md").read_text(encoding="utf-8")
+            (PROMPTS_DIR / bench_template).read_text(encoding="utf-8")
         ).render(
             target=optimization_target,
             metric=metric,
@@ -111,12 +120,22 @@ class DiscoverSkill:
         # Write benchmark to disk
         evo_dir = repo_root / ".gradex"
         evo_dir.mkdir(parents=True, exist_ok=True)
-        benchmark_path = evo_dir / "benchmark.py"
+        if primary_language == "node":
+            benchmark_path = evo_dir / "benchmark.mjs"
+            benchmark_cmd = "node .gradex/benchmark.mjs"
+            baseline_argv = ["node", str(benchmark_path)]
+        else:
+            benchmark_path = evo_dir / "benchmark.py"
+            benchmark_cmd = "python .gradex/benchmark.py"
+            baseline_argv = ["python", str(benchmark_path)]
         benchmark_path.write_text(benchmark_script, encoding="utf-8")
 
         # 4 + 5 — Gate commands
+        gate_template = (
+            "gate_design_node.md" if primary_language == "node" else "gate_design.md"
+        )
         gate_system = jinja2.Template(
-            (PROMPTS_DIR / "gate_design.md").read_text(encoding="utf-8")
+            (PROMPTS_DIR / gate_template).read_text(encoding="utf-8")
         ).render(
             target=optimization_target,
             test_files=test_files,
@@ -124,19 +143,22 @@ class DiscoverSkill:
         resp3 = await self._client.complete(gate_system, "Identify the gate commands.")
         gate_cmds_raw = self._parse_xml_tag(resp3.text, "gate_cmds")
         gate_cmds: list[str] = json.loads(gate_cmds_raw)
-        gate_cmds = self._normalize_gate_cmds(gate_cmds, repo_root, test_files)
+        gate_cmds = self._normalize_gate_cmds(
+            gate_cmds, repo_root, test_files, primary_language
+        )
 
         # 6 — Baseline
-        baseline_score = await self._run_baseline(repo_root, benchmark_path)
+        baseline_score = await self._run_baseline(repo_root, baseline_argv)
 
         # 7 — Persist Run
         from gradex.repository import RunRepository
 
         run = RunRepository().create(
-            benchmark_cmd="python .gradex/benchmark.py",
+            benchmark_cmd=benchmark_cmd,
             metric_direction=direction,
             gate_cmds=gate_cmds,
             baseline_score=baseline_score,
+            primary_language=primary_language,
         )
 
         return DiscoverResult(
@@ -148,6 +170,8 @@ class DiscoverSkill:
             gate_cmds=gate_cmds,
             baseline_score=baseline_score,
             run_id=run.id,
+            primary_language=primary_language,
+            benchmark_cmd=benchmark_cmd,
             notes=notes,
         )
 
@@ -208,8 +232,11 @@ class DiscoverSkill:
         gate_cmds: list[str],
         repo_root: Path,
         test_files: list[str],
+        primary_language: PrimaryLanguage = "python",
     ) -> list[str]:
-        """Keep gate commands whose pytest targets exist; fall back to detected tests."""
+        """Keep gate commands whose targets exist; fall back to detected tests."""
+        if primary_language == "node":
+            return self._normalize_node_gate_cmds(gate_cmds, repo_root, test_files)
         valid: list[str] = []
         for cmd in gate_cmds:
             parts = shlex.split(cmd)
@@ -225,16 +252,64 @@ class DiscoverSkill:
             return [f"pytest {' '.join(test_files)}"]
         return gate_cmds
 
-    def detect_test_files(self, repo_root: Path) -> list[str]:
-        """Return relative paths to test files in *repo_root* (max 20).
+    def _normalize_node_gate_cmds(
+        self,
+        gate_cmds: list[str],
+        repo_root: Path,
+        test_files: list[str],
+    ) -> list[str]:
+        """Validate Node gate commands; fall back to npm test or npx vitest."""
+        allowed_runners = {"npm", "npx", "node", "yarn", "pnpm"}
+        valid: list[str] = []
+        for cmd in gate_cmds:
+            parts = shlex.split(cmd)
+            if parts and parts[0] in allowed_runners:
+                valid.append(cmd)
+        if valid:
+            return valid
+        pkg = repo_root / "package.json"
+        if pkg.is_file():
+            try:
+                scripts = json.loads(pkg.read_text(encoding="utf-8")).get("scripts", {})
+                if isinstance(scripts, dict) and "test" in scripts:
+                    return ["npm test"]
+            except json.JSONDecodeError:
+                pass
+        if test_files:
+            return [f"npx vitest run {' '.join(test_files[:3])}"]
+        return gate_cmds
 
-        Matches ``test_*.py`` and ``*_test.py`` patterns anywhere under
-        *repo_root*.
-        """
+    def detect_test_files(
+        self, repo_root: Path, primary_language: PrimaryLanguage = "python"
+    ) -> list[str]:
+        """Return relative paths to test files in *repo_root* (max 20)."""
+        if primary_language == "node":
+            return self._detect_node_test_files(repo_root)
         seen: set[str] = set()
         results: list[str] = []
         for pattern in ("**/test_*.py", "**/*_test.py"):
             for path in sorted(repo_root.glob(pattern)):
+                rel = str(path.relative_to(repo_root))
+                if rel not in seen:
+                    seen.add(rel)
+                    results.append(rel)
+        return results[:20]
+
+    def _detect_node_test_files(self, repo_root: Path) -> list[str]:
+        seen: set[str] = set()
+        results: list[str] = []
+        patterns = (
+            "**/*.test.ts",
+            "**/*.test.js",
+            "**/*.spec.ts",
+            "**/*.spec.js",
+            "**/__tests__/**/*.ts",
+            "**/__tests__/**/*.js",
+        )
+        for pattern in patterns:
+            for path in sorted(repo_root.glob(pattern)):
+                if "node_modules" in path.parts:
+                    continue
                 rel = str(path.relative_to(repo_root))
                 if rel not in seen:
                     seen.add(rel)
@@ -285,16 +360,12 @@ class DiscoverSkill:
     # Baseline execution
     # ------------------------------------------------------------------
 
-    async def _run_baseline(self, repo_root: Path, benchmark_path: Path) -> float:
-        """Execute *benchmark_path* once and parse the resulting score.
-
-        Raises:
-            ValueError: If the benchmark times out or yields no parseable score.
-        """
+    async def _run_baseline(self, repo_root: Path, argv: list[str]) -> float:
+        """Execute the benchmark command once and parse the resulting score."""
         from gradex.runner.benchmark import BenchmarkRunner
 
         runner = BenchmarkRunner(self._backend, timeout=60)
-        result = await runner.run(repo_root, ["python", str(benchmark_path)])
+        result = await runner.run(repo_root, argv)
         if result.timed_out:
             raise ValueError("Baseline benchmark timed out")
         if result.score is None:
@@ -302,10 +373,11 @@ class DiscoverSkill:
             stderr_hint = ""
             if result.stderr.strip():
                 stderr_hint = f"\nBenchmark stderr:\n{result.stderr.strip()[:800]}"
+            cmd_str = " ".join(argv)
             raise ValueError(
                 f"Baseline benchmark returned no parseable score: {detail!r}"
                 f"{stderr_hint}\n"
-                f"Fix: run `python {benchmark_path}` in your repo and ensure the "
+                f"Fix: run `{cmd_str}` in your repo and ensure the "
                 f"last line of stdout is a single number."
             )
         return result.score

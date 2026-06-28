@@ -242,3 +242,45 @@ async def test_full_discover_flow(git_repo: Path, patch_evo_dir: None) -> None:
     assert result.baseline_score == pytest.approx(41.2)
     assert result.run_id != ""
     assert (git_repo / ".gradex" / "benchmark.py").exists()
+    assert result.primary_language == "python"
+    assert result.benchmark_cmd == "python .gradex/benchmark.py"
+
+
+@pytest.mark.anyio
+async def test_discover_node_repo(git_repo: Path, patch_evo_dir: None) -> None:
+    """Discover on a Node repo writes benchmark.mjs and uses node baseline."""
+    from gradex.backends.worktree import WorktreeBackend
+
+    (git_repo / "package.json").write_text(
+        '{"name": "demo", "scripts": {"test": "node --test"}}'
+    )
+    (git_repo / "app.test.js").write_text("import test from 'node:test'; test('x', () => {});")
+
+    llm_responses = [
+        "<optimization_target>Speed up parser</optimization_target>"
+        "<metric>latency ms lower</metric><rationale/>",
+        "<benchmark_script>console.log(41.2)</benchmark_script><notes/>",
+        '<gate_cmds>["npm test"]</gate_cmds><rationale/>',
+    ]
+
+    config = LLMConfig(provider="anthropic")
+    client = LLMClient(config)
+    resp_iter = iter(llm_responses)
+
+    async def _mock_complete(
+        system: str, user: str, max_tokens: int | None = None
+    ) -> LLMResponse:
+        text = next(resp_iter, "")
+        return LLMResponse(
+            text=text, input_tokens=5, output_tokens=5, provider="mock", model="mock"
+        )
+
+    client.complete = _mock_complete  # type: ignore[method-assign]
+    backend = WorktreeBackend(repo_root=git_repo)
+    skill = DiscoverSkill(client=client, backend=backend)
+
+    result = await skill.run(git_repo)
+
+    assert result.primary_language == "node"
+    assert result.benchmark_cmd == "node .gradex/benchmark.mjs"
+    assert (git_repo / ".gradex" / "benchmark.mjs").exists()

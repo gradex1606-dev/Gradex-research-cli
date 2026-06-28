@@ -78,6 +78,67 @@ class ExperimentRepository:
             session.refresh(exp)
             return exp
 
+    def update_traces_path(self, id: str, traces_path: str) -> Experiment:
+        """Set the relative trace file path for an experiment."""
+        with Session(self._engine) as session:
+            result = session.exec(select(Experiment).where(Experiment.id == id))
+            exp = result.one_or_none()
+            if exp is None:
+                raise KeyError(f"Experiment {id!r} not found")
+            exp.traces_path = traces_path
+            session.add(exp)
+            session.commit()
+            session.refresh(exp)
+            return exp
+
+    def update_llm_usage(
+        self,
+        id: str,
+        input_tokens: int,
+        output_tokens: int,
+        llm_model: str,
+    ) -> Experiment:
+        """Persist LLM token usage for an experiment."""
+        with Session(self._engine) as session:
+            result = session.exec(select(Experiment).where(Experiment.id == id))
+            exp = result.one_or_none()
+            if exp is None:
+                raise KeyError(f"Experiment {id!r} not found")
+            exp.input_tokens = input_tokens
+            exp.output_tokens = output_tokens
+            exp.llm_model = llm_model
+            session.add(exp)
+            session.commit()
+            session.refresh(exp)
+            return exp
+
+    def resolve_id(self, prefix_or_full: str, run_id: str | None = None) -> str | None:
+        """Resolve a full or 8-char experiment ID prefix to a unique experiment ID."""
+        needle = prefix_or_full.strip()
+        if not needle:
+            return None
+        with Session(self._engine) as session:
+            if run_id:
+                results = session.exec(
+                    select(Experiment).where(Experiment.run_id == run_id)
+                )
+                candidates = list(results.all())
+            else:
+                results = session.exec(select(Experiment))
+                candidates = list(results.all())
+        exact = [e for e in candidates if e.id == needle]
+        if len(exact) == 1:
+            return exact[0].id
+        prefix_matches = [e for e in candidates if e.id.startswith(needle)]
+        if len(prefix_matches) == 1:
+            return prefix_matches[0].id
+        if len(needle) >= 8:
+            short = needle[:8]
+            short_matches = [e for e in candidates if e.id.startswith(short)]
+            if len(short_matches) == 1:
+                return short_matches[0].id
+        return None
+
     def get(self, id: str) -> Experiment:
         """Return the experiment with the given *id*.
 
@@ -144,6 +205,7 @@ class RunRepository:
         metric_direction: str,
         gate_cmds: list[str],
         baseline_score: float,
+        primary_language: str = "python",
     ) -> Run:
         """Insert a new run and return it.
 
@@ -158,6 +220,7 @@ class RunRepository:
                 benchmark_cmd=benchmark_cmd,
                 metric_direction=metric_direction,
                 baseline_score=baseline_score,
+                primary_language=primary_language,
             )
             run.set_gate_cmds(gate_cmds)
             session.add(run)

@@ -139,6 +139,51 @@
     }
     #ws-pill.on  { color: #3fb950; border-color: #3fb950; }
     #ws-pill.off { color: #f85149; border-color: #f85149; }
+
+    tbody tr.exp-row { cursor: pointer; }
+    tbody tr.exp-row.selected td { background: #1c2128; }
+
+    #detail-drawer {
+      display: none;
+      position: fixed;
+      top: 0; right: 0;
+      width: min(420px, 100vw);
+      height: 100vh;
+      background: #161b22;
+      border-left: 1px solid #30363d;
+      z-index: 100;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    #detail-drawer.open { display: block; }
+    #detail-drawer h3 { color: #58a6ff; margin-bottom: 12px; font-size: 14px; }
+    #detail-close {
+      float: right;
+      background: none;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      border-radius: 4px;
+      padding: 2px 8px;
+      cursor: pointer;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 12px;
+    }
+    .detail-grid .k { color: #8b949e; }
+    .trace-entry {
+      border-left: 2px solid #30363d;
+      padding: 6px 10px;
+      margin-bottom: 8px;
+      font-size: 11px;
+      background: #0d1117;
+    }
+    .trace-entry.t-error { border-color: #f85149; }
+    .trace-entry.t-gate { border-color: #d29922; }
+    .trace-entry.t-benchmark { border-color: #58a6ff; }
   </style>
 </head>
 <body>
@@ -156,6 +201,7 @@
     <thead>
       <tr>
         <th>ID</th>
+        <th>Branch</th>
         <th>Status</th>
         <th>Score</th>
         <th>&#916; Baseline</th>
@@ -229,6 +275,14 @@
 </div>
 
 <div id="ws-pill" class="off">&#9679; disconnected</div>
+
+<aside id="detail-drawer">
+  <button id="detail-close" type="button">Close</button>
+  <h3>Experiment detail</h3>
+  <div id="detail-meta" class="detail-grid"></div>
+  <div class="panel-title">Trace timeline</div>
+  <div id="detail-traces"></div>
+</aside>
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
@@ -306,10 +360,14 @@ function gate(v) {
 // ── Table ──────────────────────────────────────────────────────────────────
 function upsertRow(e) {
   const tbody = document.getElementById('exp-body');
-  const rowId = 'row-' + e.id;
+  const shortId = (e.full_id || e.id).substring(0, 8);
+  const rowId = 'row-' + shortId;
   let tr = document.getElementById(rowId);
+  const fullId = e.full_id || (tr && tr.dataset.experimentId) || e.id;
+  const branch = e.branch ? esc(e.branch) : '<span class="muted">&mdash;</span>';
   const cells = `
-    <td>${esc(e.id.substring(0, 8))}</td>
+    <td>${esc(fullId.substring(0, 8))}</td>
+    <td>${branch}</td>
     <td>${badge(e.status)}</td>
     <td>${fmt(e.score)}</td>
     <td>${delta(e.score)}</td>
@@ -318,10 +376,65 @@ function upsertRow(e) {
   if (!tr) {
     tr = document.createElement('tr');
     tr.id = rowId;
+    tr.className = 'exp-row';
+    tr.dataset.experimentId = fullId;
+    tr.addEventListener('click', () => openExperimentDetail(fullId, tr));
     tbody.insertBefore(tr, tbody.firstChild);
   }
   tr.innerHTML = cells;
+  tr.dataset.experimentId = fullId;
 }
+
+async function openExperimentDetail(experimentId, rowEl) {
+  document.querySelectorAll('tr.exp-row').forEach(r => r.classList.remove('selected'));
+  if (rowEl) rowEl.classList.add('selected');
+  const drawer = document.getElementById('detail-drawer');
+  drawer.classList.add('open');
+  document.getElementById('detail-meta').innerHTML = '<span class="muted">Loading…</span>';
+  document.getElementById('detail-traces').innerHTML = '';
+  try {
+    const resp = await fetch(`/api/experiments/${experimentId}`);
+    if (!resp.ok) throw new Error('not found');
+    const data = await resp.json();
+    const exp = data.experiment;
+    const run = data.run;
+    const tokens = (exp.input_tokens || exp.output_tokens)
+      ? `${exp.input_tokens} in / ${exp.output_tokens} out`
+      : '—';
+    document.getElementById('detail-meta').innerHTML = `
+      <div><span class="k">ID</span><br>${esc(exp.id_short)}</div>
+      <div><span class="k">Branch</span><br>${esc(exp.branch)}</div>
+      <div><span class="k">Status</span><br>${badge(exp.status)}</div>
+      <div><span class="k">Score</span><br>${fmt(exp.score)}</div>
+      <div><span class="k">Gate</span><br>${gate(exp.gate_passed)}</div>
+      <div><span class="k">Tokens</span><br>${tokens}</div>
+      <div><span class="k">Benchmark</span><br>${esc(run.benchmark_cmd)}</div>
+      <div><span class="k">Language</span><br>${esc(run.primary_language || 'python')}</div>
+    `;
+    const tracesEl = document.getElementById('detail-traces');
+    const entries = data.traces || [];
+    if (!entries.length) {
+      tracesEl.innerHTML = '<span class="muted">No trace entries</span>';
+      return;
+    }
+    tracesEl.innerHTML = entries.map(entry => {
+      const cls = entry.msg === 'gate' ? 't-gate'
+        : entry.msg === 'benchmark' ? 't-benchmark'
+        : entry.level === 'error' ? 't-error' : '';
+      const dataStr = entry.data && Object.keys(entry.data).length
+        ? `<pre style="margin:4px 0 0;color:#8b949e;white-space:pre-wrap">${esc(JSON.stringify(entry.data))}</pre>`
+        : '';
+      return `<div class="trace-entry ${cls}"><strong>${esc(entry.level)}</strong> ${esc(entry.msg)}${dataStr}</div>`;
+    }).join('');
+  } catch (err) {
+    document.getElementById('detail-meta').innerHTML = '<span class="neg">Failed to load</span>';
+  }
+}
+
+document.getElementById('detail-close').addEventListener('click', () => {
+  document.getElementById('detail-drawer').classList.remove('open');
+  document.querySelectorAll('tr.exp-row').forEach(r => r.classList.remove('selected'));
+});
 
 function refreshRunMeta() {
   const el = document.getElementById('run-meta');

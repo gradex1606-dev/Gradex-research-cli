@@ -425,6 +425,7 @@ def discover(
             console.print(f"[red]Discover failed:[/red] {exc}")
             raise typer.Exit(code=1) from None
         console.print(f"[green]✓[/green] Target:   {result.optimization_target}")
+        console.print(f"[green]✓[/green] Language: {result.primary_language}")
         console.print(f"[green]✓[/green] Metric:   {result.metric}")
         console.print(f"[green]✓[/green] Baseline: {result.baseline_score}")
         console.print(f"[green]✓[/green] Gate:     {result.gate_cmds}")
@@ -541,6 +542,72 @@ def optimize(
 
 
 # ---------------------------------------------------------------------------
+# traces
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def traces(
+    experiment: str = typer.Option(
+        "",
+        "--experiment",
+        "-e",
+        help="Experiment ID or 8-char prefix (default: latest on latest run).",
+    ),
+    run_id: str = typer.Option("", help="Run ID to search within."),
+    tail: int = typer.Option(0, help="Show only the last N entries."),
+    as_json: bool = typer.Option(False, "--json", help="Output raw JSON."),
+) -> None:
+    """Show trace timeline for an experiment."""
+    import json
+    from datetime import datetime
+
+    from gradex.repository import ExperimentRepository, RunRepository
+    from gradex.traces import TraceReader, trace_path_for
+
+    exp_repo = ExperimentRepository()
+    run_repo = RunRepository()
+
+    resolved_id: str | None = None
+    if experiment:
+        resolved_id = exp_repo.resolve_id(experiment, run_id or None)
+    else:
+        run = run_repo.get(run_id) if run_id else run_repo.get_latest()
+        if run is not None:
+            exps = exp_repo.list_by_run(run.id)
+            if exps:
+                resolved_id = exps[-1].id
+
+    if resolved_id is None:
+        console.print("[red]No experiment found.[/red]")
+        raise typer.Exit(1)
+
+    entries = TraceReader(trace_path_for(resolved_id)).read_all()
+    if tail > 0:
+        entries = entries[-tail:]
+
+    if as_json:
+        console.print(json.dumps({"experiment_id": resolved_id, "entries": entries}, indent=2))
+        return
+
+    console.print(f"[bold]Experiment[/bold] {resolved_id[:8]}  [dim]({resolved_id})[/dim]")
+    if not entries:
+        console.print("[dim]No trace entries.[/dim]")
+        return
+
+    for entry in entries:
+        ts = entry.get("ts", 0)
+        ts_str = datetime.fromtimestamp(ts).strftime("%H:%M:%S") if ts else "??:??:??"
+        level = entry.get("level", "info")
+        msg = entry.get("msg", "")
+        data = entry.get("data", {})
+        line = f"[dim]{ts_str}[/dim] [{level}] {msg}"
+        console.print(line)
+        if data:
+            console.print(f"  [dim]{json.dumps(data)}[/dim]")
+
+
+# ---------------------------------------------------------------------------
 # stats
 # ---------------------------------------------------------------------------
 
@@ -599,6 +666,16 @@ def stats(
     console.print()
     console.print(f"  Duration:         {summary.duration_seconds:.0f}s")
     console.print(f"  Gate commands:    {', '.join(summary.gate_cmds) or 'none'}")
+    if summary.llm_call_count > 0 or summary.total_input_tokens > 0:
+        console.print()
+        console.print(
+            f"  LLM usage:        {summary.llm_call_count} calls · "
+            f"{summary.total_input_tokens:,} in / {summary.total_output_tokens:,} out tokens"
+        )
+        console.print(
+            f"  Est. cost:        ${summary.estimated_cost_usd:.4f} "
+            f"[dim]({summary.cost_model_label})[/dim]"
+        )
 
     if score_points:
         console.print()

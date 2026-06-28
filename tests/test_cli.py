@@ -23,6 +23,7 @@ def test_help_lists_all_subcommands() -> None:
         "install",
         "configure",
         "models",
+        "traces",
         "doctor",
         "dashboard",
         "upgrade",
@@ -182,4 +183,31 @@ def test_models_lists_provider_models() -> None:
     result = runner.invoke(app, ["models", "--provider", "groq"])
     assert result.exit_code == 0
     assert "llama-3.3-70b-versatile" in result.output
+
+
+def test_traces_command_help() -> None:
+    result = runner.invoke(app, ["traces", "--help"])
+    assert result.exit_code == 0
+    assert "experiment" in result.output.lower()
+
+
+def test_traces_shows_entries(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import gradex.state as state_module
+    from gradex.traces import TraceWriter, trace_path_for
+
+    gradex_dir = tmp_path / ".gradex"
+    monkeypatch.setattr(state_module, "GRADEX_DIR", gradex_dir)
+    monkeypatch.setattr(state_module, "DB_PATH", gradex_dir / "state.db")
+
+    from gradex.repository import ExperimentRepository, RunRepository
+
+    run = RunRepository().create("python b.py", "lower", [], 1.0)
+    exp = ExperimentRepository().create(run.id, None, "gradex/x")
+    TraceWriter(trace_path_for(exp.id)).write("info", "started", {})
+
+    result = runner.invoke(app, ["traces", "--experiment", exp.id[:8]])
+    assert result.exit_code == 0
+    assert "started" in result.output
 

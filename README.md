@@ -44,9 +44,10 @@ After install, GradeX walks you through provider, model, and API key setup (or s
 | `gradex doctor <host>` | Checks host environment and setup health |
 | `gradex dashboard` | Starts live optimization dashboard |
 | `gradex upgrade` | Checks PyPI for newer Gradex versions |
-| `gradex discover [hint]` | Discovers benchmark target and baseline |
+| `gradex discover [hint]` | Discovers benchmark target and baseline (Python or Node repos) |
 | `gradex optimize` | Runs autonomous optimization loop |
-| `gradex stats` | Shows run analytics and optional exports |
+| `gradex stats` | Shows run analytics, LLM token usage, and optional exports |
+| `gradex traces` | Shows experiment trace timeline |
 | `gradex report` | Exports a shareable HTML run report |
 | `gradex history` | Lists recent optimization runs |
 
@@ -63,10 +64,7 @@ After install, GradeX walks you through provider, model, and API key setup (or s
 3. `optimize` runs parallel experiment rounds (patch -> benchmark -> gate checks).
 4. Best validated patch and run analytics are surfaced in dashboard and CLI.
 
-## Dashboard
-
-Dashboard screenshot: <img width="1783" height="882" alt="gradex" src="https://github.com/user-attachments/assets/fa349f5f-8bed-43e8-90af-43f2290ee84b" />
-
+**Dashboard:** click any experiment row for detail and trace timeline. **Stats** includes estimated LLM cost per run.
 
 ## License
 

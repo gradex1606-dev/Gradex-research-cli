@@ -226,3 +226,27 @@ def test_run_summary_short_id(seeded_run) -> None:  # type: ignore[no-untyped-de
     summary = RunAnalytics().get_run_summary(seeded_run.id)
     assert summary.run_id_short == seeded_run.id[:8]
     assert len(summary.run_id_short) == 8
+
+
+def test_token_usage_aggregation(
+    tmp_path: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,  # type: ignore[type-arg]
+) -> None:
+    gradex_dir = tmp_path / ".gradex"
+    monkeypatch.setattr(state_module, "GRADEX_DIR", gradex_dir)
+    monkeypatch.setattr(state_module, "DB_PATH", gradex_dir / "state.db")
+
+    from gradex.analytics import RunAnalytics
+    from gradex.repository import ExperimentRepository, RunRepository
+
+    run = RunRepository().create("python bench.py", "lower", [], 10.0)
+    exp = ExperimentRepository().create(run.id, None, "gradex/a")
+    ExperimentRepository().update_llm_usage(exp.id, 1000, 200, "llama-3.3-70b-versatile")
+    ExperimentRepository().update_score(exp.id, 8.0, True, "passed")
+
+    summary = RunAnalytics().get_run_summary(run.id)
+    assert summary.total_input_tokens == 1000
+    assert summary.total_output_tokens == 200
+    assert summary.llm_call_count == 1
+    assert summary.estimated_cost_usd == 0.0
+

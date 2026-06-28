@@ -6,15 +6,63 @@ import socket
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.responses import Response
 
 from gradex.dashboard.broadcaster import DashboardBroadcaster
 from gradex.repository import ExperimentRepository, RunRepository
+from gradex.traces import TraceReader, trace_path_for
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+
+def _resolve_experiment_or_404(experiment_id: str) -> tuple[str, Any]:
+    """Resolve experiment ID prefix and return (full_id, Experiment)."""
+    exp_repo = ExperimentRepository()
+    resolved = exp_repo.resolve_id(experiment_id)
+    if resolved is None:
+        raise HTTPException(status_code=404, detail="experiment not found")
+    try:
+        exp = exp_repo.get(resolved)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="experiment not found") from exc
+    return resolved, exp
+
+
+def _experiment_detail_payload(experiment_id: str) -> dict[str, Any]:
+    """Build JSON payload for experiment detail including traces."""
+    _, exp = _resolve_experiment_or_404(experiment_id)
+    run = RunRepository().get(exp.run_id)
+    trace_path = trace_path_for(exp.id)
+    traces = TraceReader(trace_path).read_all()
+    return {
+        "experiment": {
+            "id": exp.id,
+            "id_short": exp.id[:8],
+            "run_id": exp.run_id,
+            "parent_id": exp.parent_id,
+            "branch": exp.branch,
+            "score": exp.score,
+            "gate_passed": exp.gate_passed,
+            "status": exp.status,
+            "traces_path": exp.traces_path,
+            "input_tokens": exp.input_tokens,
+            "output_tokens": exp.output_tokens,
+            "llm_model": exp.llm_model,
+            "created_at": exp.created_at.isoformat(),
+        },
+        "run": {
+            "id": run.id,
+            "benchmark_cmd": run.benchmark_cmd,
+            "metric_direction": run.metric_direction,
+            "baseline_score": run.baseline_score,
+            "gate_cmds": run.get_gate_cmds(),
+            "primary_language": getattr(run, "primary_language", "python"),
+        },
+        "traces": traces,
+    }
 
 
 def find_free_port(start: int = 8080, attempts: int = 20) -> int:
@@ -70,19 +118,34 @@ def create_app() -> FastAPI:
                 "benchmark_cmd": run.benchmark_cmd,
                 "metric_direction": run.metric_direction,
                 "baseline_score": run.baseline_score,
+                "primary_language": getattr(run, "primary_language", "python"),
                 "created_at": run.created_at.isoformat(),
             },
             "experiments": [
                 {
                     "id": e.id[:8],
+                    "full_id": e.id,
                     "status": e.status,
                     "score": e.score,
                     "gate_passed": e.gate_passed,
+                    "branch": e.branch,
                     "created_at": e.created_at.isoformat(),
                 }
                 for e in experiments
             ],
         }
+
+    @app.get("/api/traces/{experiment_id}")
+    async def traces_endpoint(experiment_id: str) -> dict[str, Any]:
+        """Return trace entries for an experiment."""
+        full_id, _ = _resolve_experiment_or_404(experiment_id)
+        entries = TraceReader(trace_path_for(full_id)).read_all()
+        return {"experiment_id": full_id, "entries": entries}
+
+    @app.get("/api/experiments/{experiment_id}")
+    async def experiment_detail_endpoint(experiment_id: str) -> dict[str, Any]:
+        """Return full experiment detail including traces."""
+        return _experiment_detail_payload(experiment_id)
 
     @app.get("/api/analytics/{run_id}")
     async def analytics_endpoint(run_id: str) -> dict[str, Any]:

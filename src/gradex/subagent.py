@@ -107,6 +107,7 @@ class SubagentRunner:
         """
         start_ns = time.perf_counter_ns()
         workspace: Path | None = None
+        tracer: TraceWriter | None = None
 
         try:
             # 1. Create experiment in DB (use orchestrator-assigned ID)
@@ -114,6 +115,14 @@ class SubagentRunner:
             self._exp_repo.create(
                 self._run.id, parent_id, branch, experiment_id=experiment_id
             )
+
+            tracer = TraceWriter(trace_path_for(experiment_id))
+            tracer.write(
+                "info",
+                "started",
+                {"experiment_id": experiment_id, "agent_index": agent_index},
+            )
+            self._record_traces_path(experiment_id)
 
             # 2. Mark running and broadcast
             self._set_status(experiment_id, "running")
@@ -137,6 +146,23 @@ class SubagentRunner:
             llm_response = await self._llm_client.complete(
                 system=_SYSTEM_PROMPT, user=user_msg
             )
+            assert tracer is not None
+            tracer.write(
+                "info",
+                "llm_response",
+                {
+                    "input_tokens": llm_response.input_tokens,
+                    "output_tokens": llm_response.output_tokens,
+                    "provider": llm_response.provider,
+                    "model": llm_response.model,
+                },
+            )
+            self._exp_repo.update_llm_usage(
+                experiment_id,
+                llm_response.input_tokens,
+                llm_response.output_tokens,
+                llm_response.model,
+            )
 
             # 6. Parse JSON and write the file
             parsed = self._parse_llm_json(llm_response.text)
@@ -158,20 +184,6 @@ class SubagentRunner:
             )
 
             # 9. Write traces
-            tracer = TraceWriter(trace_path_for(experiment_id))
-            tracer.write(
-                "info",
-                "started",
-                {"experiment_id": experiment_id, "agent_index": agent_index},
-            )
-            tracer.write(
-                "info",
-                "llm_response",
-                {
-                    "input_tokens": llm_response.input_tokens,
-                    "output_tokens": llm_response.output_tokens,
-                },
-            )
             tracer.write(
                 "info",
                 "benchmark",
@@ -209,6 +221,16 @@ class SubagentRunner:
             )
 
         except Exception as exc:  # noqa: BLE001
+            if tracer is not None:
+                tracer.write("error", "experiment_failed", {"error": str(exc)})
+                self._record_traces_path(experiment_id)
+            elif experiment_id:
+                try:
+                    err_tracer = TraceWriter(trace_path_for(experiment_id))
+                    err_tracer.write("error", "experiment_failed", {"error": str(exc)})
+                    self._record_traces_path(experiment_id)
+                except Exception:  # noqa: BLE001
+                    pass
             if workspace is not None:
                 try:
                     await self._backend.cleanup_workspace(workspace)
@@ -240,6 +262,14 @@ class SubagentRunner:
         if not sections:
             return ""
         return "## Source files (read before editing)\n\n" + "\n\n".join(sections)
+
+    def _record_traces_path(self, experiment_id: str) -> None:
+        """Persist relative trace path on the experiment record."""
+        rel = f"traces/{experiment_id}.jsonl"
+        try:
+            self._exp_repo.update_traces_path(experiment_id, rel)
+        except Exception:  # noqa: BLE001
+            pass
 
     def _prepare_workspace(self, workspace: Path) -> None:
         """Copy gitignored demo assets (benchmark) into the isolated worktree."""

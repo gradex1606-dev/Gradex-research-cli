@@ -56,6 +56,9 @@ class RunExporter:
                     "status": e.status,
                     "score": e.score,
                     "gate_passed": e.gate_passed,
+                    "input_tokens": e.input_tokens,
+                    "output_tokens": e.output_tokens,
+                    "llm_model": e.llm_model,
                     "created_at": e.created_at.isoformat(),
                 }
                 for e in experiments
@@ -146,6 +149,7 @@ class RunExporter:
     </div>
     <p><strong>Benchmark:</strong> <code>{summary.benchmark_cmd}</code></p>
     <p><strong>Gates:</strong> {", ".join(summary.gate_cmds) or "none"}</p>
+    <p><strong>LLM usage:</strong> {summary.llm_call_count} calls · {summary.total_input_tokens:,} in / {summary.total_output_tokens:,} out · est. ${summary.estimated_cost_usd:.4f}</p>
     <h2>Score progression (passed)</h2>
     <ul>{"".join(score_lines) if score_lines else "<li>No passed experiments yet</li>"}</ul>
     <h2>Experiments</h2>
@@ -181,6 +185,8 @@ class RunExporter:
                     "status",
                     "score",
                     "gate_passed",
+                    "input_tokens",
+                    "output_tokens",
                     "delta_from_baseline",
                     "created_at",
                 ],
@@ -196,6 +202,8 @@ class RunExporter:
                         "gate_passed": exp.gate_passed
                         if exp.gate_passed is not None
                         else "",
+                        "input_tokens": exp.input_tokens,
+                        "output_tokens": exp.output_tokens,
                         "delta_from_baseline": delta,
                         "created_at": exp.created_at.isoformat(),
                     }
@@ -218,6 +226,12 @@ class RunExporter:
             "rounds_estimated": summary.rounds_estimated,
             "created_at": summary.created_at.isoformat(),
             "gate_cmds": summary.gate_cmds,
+            "primary_language": summary.primary_language,
+            "total_input_tokens": summary.total_input_tokens,
+            "total_output_tokens": summary.total_output_tokens,
+            "llm_call_count": summary.llm_call_count,
+            "estimated_cost_usd": summary.estimated_cost_usd,
+            "cost_model_label": summary.cost_model_label,
             "breakdown": {
                 "total": summary.breakdown.total,
                 "passed": summary.breakdown.passed,
